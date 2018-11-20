@@ -71,6 +71,8 @@ StringRef Triple::getArchTypeName(ArchType Kind) {
   case wasm64:         return "wasm64";
   case renderscript32: return "renderscript32";
   case renderscript64: return "renderscript64";
+  case rx600: return "rx600";
+  case sample: return "sample";
   }
 
   llvm_unreachable("Invalid ArchType!");
@@ -433,6 +435,8 @@ static Triple::ArchType parseArch(StringRef ArchName) {
     .Case("wasm64", Triple::wasm64)
     .Case("renderscript32", Triple::renderscript32)
     .Case("renderscript64", Triple::renderscript64)
+	.Case("rx600", Triple::rx600)
+	.Case("sample", Triple::sample)
     .Default(Triple::UnknownArch);
 
   // Some architectures require special parsing logic just to compute the
@@ -1223,6 +1227,8 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::shave:
   case llvm::Triple::wasm32:
   case llvm::Triple::renderscript32:
+  case llvm::Triple::rx600:
+  case llvm::Triple::sample:
     return 32;
 
   case llvm::Triple::aarch64:
@@ -1343,6 +1349,8 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::xcore:
   case Triple::sparcel:
   case Triple::shave:
+  case Triple::rx600:
+  case Triple::sample:
     T.setArch(UnknownArch);
     break;
 
