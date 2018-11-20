@@ -1,0 +1,10 @@
+add_llvm_library(LLVMRX600Desc
+  RX600AsmBackend.cpp
+  RX600ELFObjectWriter.cpp
+  RX600MCAsmInfo.cpp
+  RX600MCCodeEmitter.cpp
+  RX600MCExpr.cpp
+  RX600MCTargetDesc.cpp
+  RX600TargetStreamer.cpp
+  RX600ELFStreamer.cpp
+)
