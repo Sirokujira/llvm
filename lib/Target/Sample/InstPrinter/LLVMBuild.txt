@@ -1,4 +1,4 @@
-;===- ./lib/Target/Mips/InstPrinter/LLVMBuild.txt --------------*- Conf -*--===;
+;===- ./lib/Target/Sample/InstPrinter/LLVMBuild.txt --------------*- Conf -*--===;
 ;
 ;                     The LLVM Compiler Infrastructure
 ;

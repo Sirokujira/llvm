@@ -1,4 +1,4 @@
-//===- ARCInstrFormats.td - ARC Instruction Formats --------*- tablegen -*-===//
+//===- SampleInstrFormats.td - Sample Instruction Formats --------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -56,10 +56,10 @@ def GPR32Reduced : Operand<iAny> {
   let DecoderMethod = "DecodeGBR32ShortRegister";
 }
 
-class InstARC<int sz, dag outs, dag ins, string asmstr, list<dag> pattern>
+class InstSample<int sz, dag outs, dag ins, string asmstr, list<dag> pattern>
     : Instruction, Encoding64 {
 
-  let Namespace = "ARC";
+  let Namespace = "Sample";
   dag OutOperandList = outs;
   dag InOperandList = ins;
   let AsmString = asmstr;
@@ -67,9 +67,9 @@ class InstARC<int sz, dag outs, dag ins, string asmstr, list<dag> pattern>
   let Size = sz;
 }
 
-// ARC pseudo instructions format
-class PseudoInstARC<dag outs, dag ins, string asmstr, list<dag> pattern>
-   : InstARC<0, outs, ins, asmstr, pattern> {
+// Sample pseudo instructions format
+class PseudoInstSample<dag outs, dag ins, string asmstr, list<dag> pattern>
+   : InstSample<0, outs, ins, asmstr, pattern> {
   let isPseudo = 1;
 }
 
@@ -77,11 +77,11 @@ class PseudoInstARC<dag outs, dag ins, string asmstr, list<dag> pattern>
 // Instruction formats
 //===----------------------------------------------------------------------===//
 
-// All 32-bit ARC instructions have a 5-bit "major" opcode class designator
+// All 32-bit Sample instructions have a 5-bit "major" opcode class designator
 // in bits 27-31.   
 // 
 // Some general naming conventions:
-// N  - Delay Slot bit.  ARC v2 branch instructions have an optional delay slot
+// N  - Delay Slot bit.  Sample v2 branch instructions have an optional delay slot
 //      which is encoded with this bit.  When set, a delay slot exists.
 // cc - Condition code.
 // SX - Signed X-bit immediate.
@@ -105,7 +105,7 @@ class PseudoInstARC<dag outs, dag ins, string asmstr, list<dag> pattern>
 // Branch Instructions.
 class F32_BR<bits<5> major, dag outs, dag ins, bit b16, string asmstr,
              list<dag> pattern> :
-  InstARC<4, outs, ins, asmstr, pattern> {
+  InstSample<4, outs, ins, asmstr, pattern> {
   bit N;
 
   let Inst{31-27} = major;
@@ -169,7 +169,7 @@ class F32_BR1_BL_COND<dag outs, dag ins, string asmstr, list<dag> pat> :
 // |B[2-0]  |S9[7-1]             | 1|S9[8]|B[5-3]  |C            |N|u|0|cc   |
 class F32_BR1_BCC<dag outs, dag ins, string asmstr, bit IsU6,
                   list<dag> pattern> :
-  InstARC<4, outs, ins, asmstr, pattern> {
+  InstSample<4, outs, ins, asmstr, pattern> {
 
   bits<3> cc;
   bits<6> B;
@@ -197,7 +197,7 @@ class F32_BR1_BCC<dag outs, dag ins, string asmstr, bit IsU6,
 // |B[2-0]  | 0| 0| 1| 0| 1| 1| 1| 1| F|B[5-3]  |C            |subop      |
 class F32_SOP_RR<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
                  string asmstr, list<dag> pattern> :
-  InstARC<4, outs, ins, asmstr, pattern> {
+  InstSample<4, outs, ins, asmstr, pattern> {
 
   bits<6> C;
   bits<6> B;
@@ -220,7 +220,7 @@ class F32_SOP_RR<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
 // |B[2-0]  | 0| 0|            subop| F|B[5-3]  |C            |A          |
 class F32_DOP_RR<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
                  string asmstr, list<dag> pattern> :
-  InstARC<4, outs, ins, asmstr, pattern> {
+  InstSample<4, outs, ins, asmstr, pattern> {
   bits<6> C;
   bits<6> B;
   bits<6> A;
@@ -241,7 +241,7 @@ class F32_DOP_RR<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
 // |B[2-0]  | 1| 1|            subop| F|B[5-3]  |C            |A          |
 class F32_DOP_CC_RR<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
                     string asmstr, list<dag> pattern> :
-  InstARC<4, outs, ins, asmstr, pattern> {
+  InstSample<4, outs, ins, asmstr, pattern> {
   bits<5> cc;
   bits<6> C;
   bits<6> B;
@@ -263,7 +263,7 @@ class F32_DOP_CC_RR<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
 // |B[2-0]  | 0| 1|            subop| F|B[5-3]  |U6           |A          |
 class F32_DOP_RU6<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
                   string asmstr, list<dag> pattern> :
-  InstARC<4, outs, ins, asmstr, pattern> {
+  InstSample<4, outs, ins, asmstr, pattern> {
   bits<6> U6;
   bits<6> B;
   bits<6> A;
@@ -284,7 +284,7 @@ class F32_DOP_RU6<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
 // |B[2-0]  | 1| 0|            subop| F|B[5-3]  |S12[5-0]     |S12[11-6]  |
 class F32_DOP_RS12<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
                    string asmstr, list<dag> pattern> :
-  InstARC<4, outs, ins, asmstr, pattern> {
+  InstSample<4, outs, ins, asmstr, pattern> {
   bits<6> B;
   bits<12> S12;
   
@@ -303,7 +303,7 @@ class F32_DOP_RS12<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
 // 62 in the C register operand slot, but is otherwise F32_DOP_RR.
 class F32_DOP_RLIMM<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
                     string asmstr, list<dag> pattern> :
-  InstARC<8, outs, ins, asmstr, pattern> {
+  InstSample<8, outs, ins, asmstr, pattern> {
   bits<6> B;
   bits<6> A;
   bits<32> LImm;
@@ -340,7 +340,7 @@ class F32_DOP_RLIMM<bits<5> major, bits<6> subop, bit F, dag outs, dag ins,
 // |B[2-0]  |S9[7-0]                |S9[8]|B[5-3]  |di|aa  |zz |x|A          |
 class F32_LD_RS9<bit x, bits<2> aa, bit di, bits<2> zz, dag outs, dag ins,
                  string asmstr, list<dag> pattern> :
-  InstARC<4, outs, ins, asmstr, pattern> {
+  InstSample<4, outs, ins, asmstr, pattern> {
   bits<6> B;
   bits<6> A;
   bits<9> S9;
@@ -372,7 +372,7 @@ class F32_LD_ADDR<bit x, bits<2> aa, bit di, bits<2> zz, dag outs, dag ins,
 // | 1| 1| 0| 0                        | 1| 1| 1|di| 0|0|zz |x|A          |
 class F32_LD_LIMM<bit x, bit di, bits<2> zz, dag outs, dag ins,
                   string asmstr, list<dag> pattern> :
-  InstARC<8, outs, ins, asmstr, pattern> {
+  InstSample<8, outs, ins, asmstr, pattern> {
   bits<6> LImmReg = 0b111110;
   bits<6> A;
   bits<32> LImm;
@@ -395,7 +395,7 @@ class F32_LD_LIMM<bit x, bit di, bits<2> zz, dag outs, dag ins,
 // |B[2-0]  |aa   | 1| 1| 0|zz   | x|di|B[5-3]  | 1| 1|1|1|1|0|A          |
 class F32_LD_RLIMM<bit x, bits<2> aa, bit di, bits<2> zz, dag outs, dag ins,
                    string asmstr, list<dag> pattern> :
-  InstARC<8, outs, ins, asmstr, pattern> {
+  InstSample<8, outs, ins, asmstr, pattern> {
   bits<6> LImmReg = 0b111110;
   bits<32> LImm;
   bits<6> B;
@@ -423,7 +423,7 @@ class F32_LD_RLIMM<bit x, bits<2> aa, bit di, bits<2> zz, dag outs, dag ins,
 // |B[2-0]  |S9[7-0]                |S9[8]|B[5-3]  |C            |di|aa |zz |0|
 class F32_ST_RS9<bits<2> aa, bit di, bits<2> zz, dag outs, dag ins,
                  string asmstr, list<dag> pattern> :
-  InstARC<4, outs, ins, asmstr, pattern> {
+  InstSample<4, outs, ins, asmstr, pattern> {
   bits<6> B;
   bits<6> C;
   bits<9> S9;
@@ -454,7 +454,7 @@ class F32_ST_ADDR<bits<2> aa, bit di, bits<2> zz, dag outs, dag ins,
 // | 1| 1| 0| 0                        | 1| 1| 1|C            |di|0|0|zz |0|
 class F32_ST_LIMM<bit di, bits<2> zz, dag outs, dag ins,
                   string asmstr, list<dag> pattern> :
-  InstARC<8, outs, ins, asmstr, pattern> {
+  InstSample<8, outs, ins, asmstr, pattern> {
   bits<6> LImmReg = 0b111110;
   bits<6> C;
   bits<32> LImm;
@@ -477,7 +477,7 @@ class F32_ST_LIMM<bit di, bits<2> zz, dag outs, dag ins,
 // |      |h    |   |i|H  |
 class F16_COMPACT<bits<1> i, dag outs, dag ins,
                  string asmstr> :
-  InstARC<2, outs, ins, asmstr, []> {
+  InstSample<2, outs, ins, asmstr, []> {
 
   bits<5> h;
 
@@ -489,7 +489,7 @@ class F16_COMPACT<bits<1> i, dag outs, dag ins,
 
 // Compact Load/Add/Sub.
 class F16_LD_ADD_SUB<dag outs, dag ins, string asmstr> :
-  InstARC<2, outs, ins, asmstr, []> {
+  InstSample<2, outs, ins, asmstr, []> {
 
   bits<3> b;  
   let Inst{15-11} = 0b01001;
@@ -524,7 +524,7 @@ class F16_ADD :
 
 // Compact Load/Store.
 class F16_LD_ST_1<dag outs, dag ins, string asmstr> :
-  InstARC<2, outs, ins, asmstr, []> {
+  InstSample<2, outs, ins, asmstr, []> {
 
   let Inst{15-11} = 0b01010;
 }
@@ -556,7 +556,7 @@ class F16_LDI_u7 :
 
 // Indexed Jump or Execute.
 class F16_JLI_EI<bit i, string asmstr> :
-  InstARC<2, (outs), (ins immU<10>:$u10),
+  InstSample<2, (outs), (ins immU<10>:$u10),
   !strconcat(asmstr, "\t$u10"), []> {
 
   bits<10> u10;
@@ -568,7 +568,7 @@ class F16_JLI_EI<bit i, string asmstr> :
 
 // Load/Add Register-Register.
 class F16_LD_ADD_RR<bits<2> i, string asmstr> :
-  InstARC<2, (outs GPR32:$a), (ins GPR32:$b, GPR32:$c),
+  InstSample<2, (outs GPR32:$a), (ins GPR32:$b, GPR32:$c),
   asmstr, []> {
 
   bits<3> a;
@@ -584,7 +584,7 @@ class F16_LD_ADD_RR<bits<2> i, string asmstr> :
 
 // Load/Add GP-Relative.
 class F16_GP_LD_ADD<bits<2> i, dag ins, string asmstr> :
-  InstARC<2, (outs), ins, asmstr, []> {
+  InstSample<2, (outs), ins, asmstr, []> {
  
   let Inst{15-11} = 0b11001;
   let Inst{10-9} = i;
@@ -594,7 +594,7 @@ class F16_GP_LD_ADD<bits<2> i, dag ins, string asmstr> :
 // |10|9|8|7|6|5|4|3|2|1|0|
 // |b     |c    |i  |u    |
 class F16_ADD_IMM<bits<2> i, string asmstr> :
-  InstARC<2, (outs GPR32:$c), (ins GPR32:$b, immU<3>:$u3),
+  InstSample<2, (outs GPR32:$c), (ins GPR32:$b, immU<3>:$u3),
   !strconcat(asmstr, "\t$c, $b, $u3"), []> {
 
   bits<3> b;
@@ -612,7 +612,7 @@ class F16_ADD_IMM<bits<2> i, string asmstr> :
 // |10|9|8|7|6|5|4|3|2|1|0|
 // |b/s   |h    |i    |H  |
 class F16_OP_HREG<bits<3> i, dag outs, dag ins, string asmstr> :
-  InstARC<2, outs, ins, asmstr, []> {
+  InstSample<2, outs, ins, asmstr, []> {
 
   bits<3> b_s3;
   bits<5> h;
@@ -642,7 +642,7 @@ class F16_OP_HREG_LIMM<bits<3> i, dag outs, dag ins, string asmstr> :
 
 // General compact DOP format.
 class F16_GEN_DOP_BASE<bits<5> i, dag outs, dag ins, string asmstr> :
-  InstARC<2, outs, ins, asmstr, []> {
+  InstSample<2, outs, ins, asmstr, []> {
 
   bits<3> b;
   bits<3> c;
@@ -681,7 +681,7 @@ class F16_GEN_ZOP<bits<3> i, string asmstr> :
 
 // Compact Load/Store with Offset Format.
 class F16_LD_ST_OFF<bits<5> opc, dag outs, dag ins, string asmstr> :
-  InstARC<2, outs, ins, !strconcat(asmstr, "\t$c, [$b, $off]"), []> {
+  InstSample<2, outs, ins, !strconcat(asmstr, "\t$c, [$b, $off]"), []> {
 
   bits<3> b;
   bits<3> c;
@@ -717,7 +717,7 @@ class F16_LD_ST_BYTE_OFF<bits<5> opc, dag outs, dag ins, string asmstr> :
 // |10|9|8|7|6|5|4|3|2|1|0|
 // |b     |i    |u        |
 class F16_SH_SUB_BIT<bits<3> i, string asmstr> :
-  InstARC<2, (outs), (ins GPR32:$b, immU<5>:$u5), asmstr, []> {
+  InstSample<2, (outs), (ins GPR32:$b, immU<5>:$u5), asmstr, []> {
 
   bits<3> b;
   bits<5> u5;
@@ -736,7 +736,7 @@ class F16_SH_SUB_BIT_DST<bits<3> i, string asmstr> :
 // |b     |i    |u        |
 class F16_SP_OPS<bits<3> i,
   dag outs, dag ins, string asmstr> :
-  InstARC<2, outs, ins, asmstr, []> {
+  InstSample<2, outs, ins, asmstr, []> {
 
   bits<3> fieldB;
   bits<5> fieldU;
@@ -793,7 +793,7 @@ class F16_SP_ST<bits<3> i, string asmop> : F16_SP_OPS_u7_aligned<i,
 
 // Compact MOV/ADD/CMP Immediate Format.
 class F16_OP_IMM<bits<5> opc, dag outs, dag ins, string asmstr> :
-  InstARC<2, outs, ins, asmstr, []> {
+  InstSample<2, outs, ins, asmstr, []> {
 
   bits<3> b;
   let Inst{15-11} = opc;
@@ -850,7 +850,7 @@ def calltargetS25: CallTargetS<25>;
 
 // Compact Branch on Compare Register with Zero.
 class F16_BCC_REG<bit i, string asmstr> :
-  InstARC<2, (outs), (ins GPR32:$b, btargetS8:$s8),
+  InstSample<2, (outs), (ins GPR32:$b, btargetS8:$s8),
   !strconcat(asmstr, "\t$b, 0, $s8"), []> {
 
   bits<3> b;
@@ -865,7 +865,7 @@ class F16_BCC_REG<bit i, string asmstr> :
 
 // Compact Branch Conditionally Format.
 class F16_BCC<bits<2> i, dag ins, string asmstr> :
-  InstARC<2, (outs), ins, asmstr, []> {
+  InstSample<2, (outs), ins, asmstr, []> {
 
   let Inst{15-11} = 0b11110;
   let Inst{10-9} = i;

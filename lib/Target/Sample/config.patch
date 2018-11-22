@@ -74,7 +74,7 @@ diff -Nur llvm-3.2.src/lib/Support/Triple.cpp llvm-3.2/lib/Support/Triple.cpp
      .Case("spir", Triple::spir)
      .Case("spir64", Triple::spir64)
 +    .Case("sample", Triple::sample)
-     .Default(Triple::UnknownArch);
+     .Default(Triple::UnknownSampleh);
  }
  
 @@ -678,6 +681,7 @@

@@ -1,4 +1,4 @@
-//===-- SampleFrameLowering.cpp - Sample Frame Information --------------------===//
+//===-- SampleFrameLowering.cpp - Sample Frame Information -------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -10,7 +10,6 @@
 // This file contains the Sample implementation of TargetFrameLowering class.
 //
 //===----------------------------------------------------------------------===//
-
 #include "SampleFrameLowering.h"
 #include "SampleInstrInfo.h"
 #include "SampleMachineFunction.h"

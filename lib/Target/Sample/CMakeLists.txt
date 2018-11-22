@@ -18,7 +18,9 @@ add_llvm_target(SampleCodeGen
   SampleInstrInfo.cpp
   SampleISelDAGToDAG.cpp
   SampleISelLowering.cpp
+  SampleMachineFunction.cpp
   SampleMachineFunctionInfo.cpp
+  SampleSelectionDAGInfo.cpp
   SampleMCInstLower.cpp
   SampleRegisterInfo.cpp
   SampleSubtarget.cpp

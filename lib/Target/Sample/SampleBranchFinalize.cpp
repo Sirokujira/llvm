@@ -1,4 +1,4 @@
-//===- ARCBranchFinalize.cpp - ARC conditional branches ---------*- C++ -*-===//
+//===- SampleBranchFinalize.cpp - Sample conditional branches ---------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -11,11 +11,11 @@
 // range conditional branches.
 //===----------------------------------------------------------------------===//
 
-#define DEBUG_TYPE "arc-branch-finalize"
+#define DEBUG_TYPE "Sample-branch-finalize"
 
-#include "ARCInstrInfo.h"
-#include "ARCTargetMachine.h"
-#include "MCTargetDesc/ARCInfo.h"
+#include "SampleInstrInfo.h"
+#include "SampleTargetMachine.h"
+#include "MCTargetDesc/SampleInfo.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
@@ -28,23 +28,23 @@ using namespace llvm;
 
 namespace llvm {
 
-void initializeARCBranchFinalizePass(PassRegistry &Registry);
-FunctionPass *createARCBranchFinalizePass();
+void initializeSampleBranchFinalizePass(PassRegistry &Registry);
+FunctionPass *createSampleBranchFinalizePass();
 
 } // end namespace llvm
 
 namespace {
 
-class ARCBranchFinalize : public MachineFunctionPass {
+class SampleBranchFinalize : public MachineFunctionPass {
 public:
   static char ID;
 
-  ARCBranchFinalize() : MachineFunctionPass(ID) {
-    initializeARCBranchFinalizePass(*PassRegistry::getPassRegistry());
+  SampleBranchFinalize() : MachineFunctionPass(ID) {
+    initializeSampleBranchFinalizePass(*PassRegistry::getPassRegistry());
   }
 
   StringRef getPassName() const override {
-    return "ARC Branch Finalization Pass";
+    return "Sample Branch Finalization Pass";
   }
 
   bool runOnMachineFunction(MachineFunction &MF) override;
@@ -52,18 +52,18 @@ public:
   void replaceWithCmpBcc(MachineInstr *MI) const;
 
 private:
-  const ARCInstrInfo *TII{nullptr};
+  const SampleInstrInfo *TII{nullptr};
 };
 
-char ARCBranchFinalize::ID = 0;
+char SampleBranchFinalize::ID = 0;
 
 } // end anonymous namespace
 
-INITIALIZE_PASS_BEGIN(ARCBranchFinalize, "arc-branch-finalize",
-                      "ARC finalize branches", false, false)
+INITIALIZE_PASS_BEGIN(SampleBranchFinalize, "Sample-branch-finalize",
+                      "Sample finalize branches", false, false)
 INITIALIZE_PASS_DEPENDENCY(MachineDominatorTree)
-INITIALIZE_PASS_END(ARCBranchFinalize, "arc-branch-finalize",
-                    "ARC finalize branches", false, false)
+INITIALIZE_PASS_END(SampleBranchFinalize, "Sample-branch-finalize",
+                    "Sample finalize branches", false, false)
 
 // BRcc has 6 supported condition codes, which differ from the 16
 // condition codes supported in the predicated instructions:
@@ -75,17 +75,17 @@ INITIALIZE_PASS_END(ARCBranchFinalize, "arc-branch-finalize",
 // HS -- 101
 static unsigned getCCForBRcc(unsigned CC) {
   switch (CC) {
-  case ARCCC::EQ:
+  case SampleCC::EQ:
     return 0;
-  case ARCCC::NE:
+  case SampleCC::NE:
     return 1;
-  case ARCCC::LT:
+  case SampleCC::LT:
     return 2;
-  case ARCCC::GE:
+  case SampleCC::GE:
     return 3;
-  case ARCCC::LO:
+  case SampleCC::LO:
     return 4;
-  case ARCCC::HS:
+  case SampleCC::HS:
     return 5;
   default:
     return -1U;
@@ -93,25 +93,25 @@ static unsigned getCCForBRcc(unsigned CC) {
 }
 
 static bool isBRccPseudo(MachineInstr *MI) {
-  return !(MI->getOpcode() != ARC::BRcc_rr_p &&
-           MI->getOpcode() != ARC::BRcc_ru6_p);
+  return !(MI->getOpcode() != Sample::BRcc_rr_p &&
+           MI->getOpcode() != Sample::BRcc_ru6_p);
 }
 
 static unsigned getBRccForPseudo(MachineInstr *MI) {
   assert(isBRccPseudo(MI) && "Can't get BRcc for wrong instruction.");
-  if (MI->getOpcode() == ARC::BRcc_rr_p)
-    return ARC::BRcc_rr;
-  return ARC::BRcc_ru6;
+  if (MI->getOpcode() == Sample::BRcc_rr_p)
+    return Sample::BRcc_rr;
+  return Sample::BRcc_ru6;
 }
 
 static unsigned getCmpForPseudo(MachineInstr *MI) {
   assert(isBRccPseudo(MI) && "Can't get BRcc for wrong instruction.");
-  if (MI->getOpcode() == ARC::BRcc_rr_p)
-    return ARC::CMP_rr;
-  return ARC::CMP_ru6;
+  if (MI->getOpcode() == Sample::BRcc_rr_p)
+    return Sample::CMP_rr;
+  return Sample::CMP_ru6;
 }
 
-void ARCBranchFinalize::replaceWithBRcc(MachineInstr *MI) const {
+void SampleBranchFinalize::replaceWithBRcc(MachineInstr *MI) const {
   LLVM_DEBUG(dbgs() << "Replacing pseudo branch with BRcc\n");
   unsigned CC = getCCForBRcc(MI->getOperand(3).getImm());
   if (CC != -1U) {
@@ -127,26 +127,26 @@ void ARCBranchFinalize::replaceWithBRcc(MachineInstr *MI) const {
   }
 }
 
-void ARCBranchFinalize::replaceWithCmpBcc(MachineInstr *MI) const {
+void SampleBranchFinalize::replaceWithCmpBcc(MachineInstr *MI) const {
   LLVM_DEBUG(dbgs() << "Branch: " << *MI << "\n");
   LLVM_DEBUG(dbgs() << "Replacing pseudo branch with Cmp + Bcc\n");
   BuildMI(*MI->getParent(), MI, MI->getDebugLoc(),
           TII->get(getCmpForPseudo(MI)))
       .addReg(MI->getOperand(1).getReg())
       .add(MI->getOperand(2));
-  BuildMI(*MI->getParent(), MI, MI->getDebugLoc(), TII->get(ARC::Bcc))
+  BuildMI(*MI->getParent(), MI, MI->getDebugLoc(), TII->get(Sample::Bcc))
       .addMBB(MI->getOperand(0).getMBB())
       .addImm(MI->getOperand(3).getImm());
   MI->eraseFromParent();
 }
 
-bool ARCBranchFinalize::runOnMachineFunction(MachineFunction &MF) {
-  LLVM_DEBUG(dbgs() << "Running ARC Branch Finalize on " << MF.getName()
+bool SampleBranchFinalize::runOnMachineFunction(MachineFunction &MF) {
+  LLVM_DEBUG(dbgs() << "Running Sample Branch Finalize on " << MF.getName()
                     << "\n");
   std::vector<MachineInstr *> Branches;
   bool Changed = false;
   unsigned MaxSize = 0;
-  TII = MF.getSubtarget<ARCSubtarget>().getInstrInfo();
+  TII = MF.getSubtarget<SampleSubtarget>().getInstrInfo();
   std::map<MachineBasicBlock *, unsigned> BlockToPCMap;
   std::vector<std::pair<MachineInstr *, unsigned>> BranchToPCList;
   unsigned PC = 0;
@@ -178,6 +178,6 @@ bool ARCBranchFinalize::runOnMachineFunction(MachineFunction &MF) {
   return Changed;
 }
 
-FunctionPass *llvm::createARCBranchFinalizePass() {
-  return new ARCBranchFinalize();
+FunctionPass *llvm::createSampleBranchFinalizePass() {
+  return new SampleBranchFinalize();
 }

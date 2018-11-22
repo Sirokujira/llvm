@@ -1,4 +1,4 @@
-//===- ARCTargetStreamer.h - ARC Target Streamer ----------------*- C++ -*-===//
+//===- SampleTargetStreamer.h - Sample Target Streamer ----------------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,19 +7,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_TARGET_ARC_ARCTARGETSTREAMER_H
-#define LLVM_LIB_TARGET_ARC_ARCTARGETSTREAMER_H
+#ifndef LLVM_LIB_TARGET_Sample_SampleTARGETSTREAMER_H
+#define LLVM_LIB_TARGET_Sample_SampleTARGETSTREAMER_H
 
 #include "llvm/MC/MCStreamer.h"
 
 namespace llvm {
 
-class ARCTargetStreamer : public MCTargetStreamer {
+class SampleTargetStreamer : public MCTargetStreamer {
 public:
-  ARCTargetStreamer(MCStreamer &S);
-  ~ARCTargetStreamer() override;
+  SampleTargetStreamer(MCStreamer &S);
+  ~SampleTargetStreamer() override;
 };
 
 } // end namespace llvm
 
-#endif // LLVM_LIB_TARGET_ARC_ARCTARGETSTREAMER_H
+#endif // LLVM_LIB_TARGET_Sample_SampleTARGETSTREAMER_H

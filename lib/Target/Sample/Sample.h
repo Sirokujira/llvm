@@ -1,4 +1,4 @@
-//===-- Sample.h - Top-level interface for Sample representation ----*- C++ -*-===//
+//===- Sample.h - Top-level interface for Sample representation -------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,13 +7,13 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file contains the entry points for global functions defined in
-// the LLVM Sample back-end.
+// This file contains the entry points for global functions defined in the LLVM
+// Sample back-end.
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef TARGET_SAMPLE_H
-#define TARGET_SAMPLE_H
+#ifndef LLVM_LIB_TARGET_Sample_Sample_H
+#define LLVM_LIB_TARGET_Sample_Sample_H
 
 #include "MCTargetDesc/SampleMCTargetDesc.h"
 #include "llvm/Target/TargetMachine.h"

@@ -1,4 +1,4 @@
-//===-- SampleInstrInfo.cpp - Sample Instruction Information ------------------===//
+//===- SampleInstrInfo.cpp - Sample Instruction Information -----------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

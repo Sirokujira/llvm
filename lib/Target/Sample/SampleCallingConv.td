@@ -1,4 +1,4 @@
-//===- ARCCallingConv.td - Calling Conventions for ARC -----*- tablegen -*-===//
+//===- SampleCallingConv.td - Calling Conventions for Sample -----*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -6,13 +6,13 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-// This describes the calling conventions for ARC architecture.
+// This describes the calling conventions for Sample Samplehitecture.
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
-// ARC Return Value Calling Convention
+// Sample Return Value Calling Convention
 //===----------------------------------------------------------------------===//
-def RetCC_ARC : CallingConv<[
+def RetCC_Sample : CallingConv<[
   // i32 are returned in registers R0, R1, R2, R3
   CCIfType<[i32, i64], CCAssignToReg<[R0, R1, R2, R3]>>,
 
@@ -23,9 +23,9 @@ def RetCC_ARC : CallingConv<[
 ]>;
 
 //===----------------------------------------------------------------------===//
-// ARC Argument Calling Conventions
+// Sample Argument Calling Conventions
 //===----------------------------------------------------------------------===//
-def CC_ARC : CallingConv<[
+def CC_Sample : CallingConv<[
   // Promote i8/i16 arguments to i32.
   CCIfType<[i8, i16], CCPromoteToType<i32>>,
 
@@ -38,4 +38,4 @@ def CC_ARC : CallingConv<[
   CCIfType<[i32], CCAssignToStack<4, 4>>
 ]>;
 
-def CSR_ARC : CalleeSavedRegs<(add (sequence "R%u", 13, 25), GP, FP)>;
+def CSR_Sample : CalleeSavedRegs<(add (sequence "R%u", 13, 25), GP, FP)>;

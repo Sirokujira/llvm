@@ -289,6 +289,8 @@ set(LLVM_ALL_TARGETS
   SystemZ
   X86
   XCore
+  RX600
+  Sample
   )
 
 # List of targets with JIT support:

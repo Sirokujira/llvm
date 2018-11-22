@@ -1,4 +1,4 @@
-//===- ARCMachineFunctionInfo.cpp - ARC machine func info -------*- C++ -*-===//
+//===- SampleMachineFunctionInfo.cpp - Sample machine func info -------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "ARCMachineFunctionInfo.h"
+#include "SampleMachineFunctionInfo.h"
 
 using namespace llvm;
 
-void ARCFunctionInfo::anchor() {}
+void SampleFunctionInfo::anchor() {}

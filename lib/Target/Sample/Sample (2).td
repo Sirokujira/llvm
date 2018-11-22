@@ -1,4 +1,4 @@
-//===- ARC.td - Describe the ARC Target Machine ------------*- tablegen -*-===//
+//===- Sample.td - Describe the Sample Target Machine ------------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -9,17 +9,17 @@
 
 include "llvm/Target/Target.td"
 
-include "ARCRegisterInfo.td"
-include "ARCInstrInfo.td"
-include "ARCCallingConv.td"
+include "SampleRegisterInfo.td"
+include "SampleInstrInfo.td"
+include "SampleCallingConv.td"
 
-def ARCInstrInfo : InstrInfo;
+def SampleInstrInfo : InstrInfo;
 
 class Proc<string Name, list<SubtargetFeature> Features>
  : Processor<Name, NoItineraries, Features>;
 
 def : Proc<"generic", []>;
 
-def ARC : Target {
-  let InstructionSet = ARCInstrInfo;
+def Sample : Target {
+  let InstructionSet = SampleInstrInfo;
 }

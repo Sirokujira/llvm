@@ -1,4 +1,4 @@
-;===- ./lib/Target/RX600/TargetInfo/LLVMBuild.txt -------------*- Conf -*--===;
+;===- ./lib/Target/RX600/TargetInfo/LLVMBuild.txt --------------*- Conf -*--===;
 ;
 ;                     The LLVM Compiler Infrastructure
 ;
@@ -19,5 +19,5 @@
 type = Library
 name = RX600Info
 parent = RX600
-required_libraries = MC Support Target
+required_libraries = Support
 add_to_library_groups = RX600

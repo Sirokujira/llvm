@@ -1,4 +1,4 @@
-//===- ARCExpandPseudosPass - ARC expand pseudo loads -----------*- C++ -*-===//
+//===- SampleExpandPseudosPass - Sample expand pseudo loads -----------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -10,10 +10,10 @@
 // This pass expands stores with large offsets into an appropriate sequence.
 //===----------------------------------------------------------------------===//
 
-#include "ARC.h"
-#include "ARCInstrInfo.h"
-#include "ARCRegisterInfo.h"
-#include "ARCSubtarget.h"
+#include "Sample.h"
+#include "SampleInstrInfo.h"
+#include "SampleRegisterInfo.h"
+#include "SampleSubtarget.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
@@ -21,48 +21,48 @@
 
 using namespace llvm;
 
-#define DEBUG_TYPE "arc-expand-pseudos"
+#define DEBUG_TYPE "Sample-expand-pseudos"
 
 namespace {
 
-class ARCExpandPseudos : public MachineFunctionPass {
+class SampleExpandPseudos : public MachineFunctionPass {
 public:
   static char ID;
-  ARCExpandPseudos() : MachineFunctionPass(ID) {}
+  SampleExpandPseudos() : MachineFunctionPass(ID) {}
 
   bool runOnMachineFunction(MachineFunction &Fn) override;
 
-  StringRef getPassName() const override { return "ARC Expand Pseudos"; }
+  StringRef getPassName() const override { return "Sample Expand Pseudos"; }
 
 private:
   void ExpandStore(MachineFunction &, MachineBasicBlock::iterator);
 
-  const ARCInstrInfo *TII;
+  const SampleInstrInfo *TII;
 };
 
-char ARCExpandPseudos::ID = 0;
+char SampleExpandPseudos::ID = 0;
 
 } // end anonymous namespace
 
 static unsigned getMappedOp(unsigned PseudoOp) {
   switch (PseudoOp) {
-  case ARC::ST_FAR:
-    return ARC::ST_rs9;
-  case ARC::STH_FAR:
-    return ARC::STH_rs9;
-  case ARC::STB_FAR:
-    return ARC::STB_rs9;
+  case Sample::ST_FAR:
+    return Sample::ST_rs9;
+  case Sample::STH_FAR:
+    return Sample::STH_rs9;
+  case Sample::STB_FAR:
+    return Sample::STB_rs9;
   default:
     llvm_unreachable("Unhandled pseudo op.");
   }
 }
 
-void ARCExpandPseudos::ExpandStore(MachineFunction &MF,
+void SampleExpandPseudos::ExpandStore(MachineFunction &MF,
                                    MachineBasicBlock::iterator SII) {
   MachineInstr &SI = *SII;
-  unsigned AddrReg = MF.getRegInfo().createVirtualRegister(&ARC::GPR32RegClass);
+  unsigned AddrReg = MF.getRegInfo().createVirtualRegister(&Sample::GPR32RegClass);
   unsigned AddOpc =
-      isUInt<6>(SI.getOperand(2).getImm()) ? ARC::ADD_rru6 : ARC::ADD_rrlimm;
+      isUInt<6>(SI.getOperand(2).getImm()) ? Sample::ADD_rru6 : Sample::ADD_rrlimm;
   BuildMI(*SI.getParent(), SI, SI.getDebugLoc(), TII->get(AddOpc), AddrReg)
       .addReg(SI.getOperand(1).getReg())
       .addImm(SI.getOperand(2).getImm());
@@ -74,8 +74,8 @@ void ARCExpandPseudos::ExpandStore(MachineFunction &MF,
   SI.eraseFromParent();
 }
 
-bool ARCExpandPseudos::runOnMachineFunction(MachineFunction &MF) {
-  const ARCSubtarget *STI = &MF.getSubtarget<ARCSubtarget>();
+bool SampleExpandPseudos::runOnMachineFunction(MachineFunction &MF) {
+  const SampleSubtarget *STI = &MF.getSubtarget<SampleSubtarget>();
   TII = STI->getInstrInfo();
   bool ExpandedStore = false;
   for (auto &MBB : MF) {
@@ -83,9 +83,9 @@ bool ARCExpandPseudos::runOnMachineFunction(MachineFunction &MF) {
     while (MBBI != E) {
       MachineBasicBlock::iterator NMBBI = std::next(MBBI);
       switch (MBBI->getOpcode()) {
-      case ARC::ST_FAR:
-      case ARC::STH_FAR:
-      case ARC::STB_FAR:
+      case Sample::ST_FAR:
+      case Sample::STH_FAR:
+      case Sample::STB_FAR:
         ExpandStore(MF, MBBI);
         ExpandedStore = true;
         break;
@@ -98,6 +98,6 @@ bool ARCExpandPseudos::runOnMachineFunction(MachineFunction &MF) {
   return ExpandedStore;
 }
 
-FunctionPass *llvm::createARCExpandPseudosPass() {
-  return new ARCExpandPseudos();
+FunctionPass *llvm::createSampleExpandPseudosPass() {
+  return new SampleExpandPseudos();
 }

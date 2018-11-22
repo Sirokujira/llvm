@@ -1,4 +1,4 @@
-//===-- Sample.td - Describe the Sample Target Machine ---------*- tablegen -*-===//
+//===- Sample.td - Describe the Sample Target Machine ------------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

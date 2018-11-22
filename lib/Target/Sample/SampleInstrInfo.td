@@ -1,4 +1,4 @@
-//===- ARCInstrInfo.td - Target Description for ARC --------*- tablegen -*-===//
+//===- SampleInstrInfo.td - Target Description for Sample --------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,59 +7,59 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file describes the ARC instructions in TableGen format.
+// This file describes the Sample instructions in TableGen format.
 //
 //===----------------------------------------------------------------------===//
 
-include "ARCInstrFormats.td"
+include "SampleInstrFormats.td"
 
 // ---------------------------------------------------------------------------
 // Selection DAG Nodes.
 // ---------------------------------------------------------------------------
 
 // Selection DAG types.
-def SDT_ARCcmptst : SDTypeProfile<0, 2, [SDTCisSameAs<0, 1>]>;
-def SDT_ARCcmov : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>]>;
-def SDT_ARCmov : SDTypeProfile<1, 1, [SDTCisSameAs<0, 1>]>;
-def SDT_ARCbrcc : SDTypeProfile<0, 4, []>;
-def SDT_ARCBranchLink : SDTypeProfile<0, 1, [SDTCisPtrTy<0>]>;
-def SDT_ARCCallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>,
+def SDT_Samplecmptst : SDTypeProfile<0, 2, [SDTCisSameAs<0, 1>]>;
+def SDT_Samplecmov : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>]>;
+def SDT_Samplemov : SDTypeProfile<1, 1, [SDTCisSameAs<0, 1>]>;
+def SDT_Samplebrcc : SDTypeProfile<0, 4, []>;
+def SDT_SampleBranchLink : SDTypeProfile<0, 1, [SDTCisPtrTy<0>]>;
+def SDT_SampleCallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>,
                                            SDTCisVT<1, i32> ]>;
-def SDT_ARCCallSeqEnd   : SDCallSeqEnd<[ SDTCisVT<0, i32>,
+def SDT_SampleCallSeqEnd   : SDCallSeqEnd<[ SDTCisVT<0, i32>,
                                          SDTCisVT<1, i32> ]>;
 
 
 // Global Address.
-def ARCGAWrapper : SDNode<"ARCISD::GAWRAPPER", SDT_ARCmov, []>;
+def SampleGAWrapper : SDNode<"SampleISD::GAWRAPPER", SDT_Samplemov, []>;
 
 // Comparison
-def ARCcmp : SDNode<"ARCISD::CMP", SDT_ARCcmptst, [SDNPOutGlue]>;
+def Samplecmp : SDNode<"SampleISD::CMP", SDT_Samplecmptst, [SDNPOutGlue]>;
 
 // Conditionanal mov
-def ARCcmov : SDNode<"ARCISD::CMOV", SDT_ARCcmov, [SDNPInGlue]>;
+def Samplecmov : SDNode<"SampleISD::CMOV", SDT_Samplecmov, [SDNPInGlue]>;
 
 // Conditional Branch
-def ARCbrcc : SDNode<"ARCISD::BRcc", SDT_ARCbrcc,
+def Samplebrcc : SDNode<"SampleISD::BRcc", SDT_Samplebrcc,
                        [SDNPHasChain, SDNPInGlue, SDNPOutGlue]>;
 
 // Direct Call
-def ARCBranchLink     : SDNode<"ARCISD::BL",SDT_ARCBranchLink,
+def SampleBranchLink     : SDNode<"SampleISD::BL",SDT_SampleBranchLink,
                             [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue,
                              SDNPVariadic]>;
 
 // Indirect Call
-def ARCJumpLink       : SDNode<"ARCISD::JL",SDT_ARCBranchLink,
+def SampleJumpLink       : SDNode<"SampleISD::JL",SDT_SampleBranchLink,
                                  [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue,
                                   SDNPVariadic]>;
 // Call return
-def ret      : SDNode<"ARCISD::RET", SDTNone,
+def ret      : SDNode<"SampleISD::RET", SDTNone,
                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 // Call sequencing nodes.
 // These are target-independent nodes, but have target-specific formats.
-def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_ARCCallSeqStart,
+def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_SampleCallSeqStart,
                            [SDNPHasChain, SDNPOutGlue]>;
-def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_ARCCallSeqEnd,
+def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_SampleCallSeqEnd,
                            [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
 
 //===----------------------------------------------------------------------===//
@@ -86,28 +86,28 @@ def AddrModeFar : ComplexPattern<i32, 2, "SelectAddrModeFar", []>;
 //===----------------------------------------------------------------------===//
 
 let Defs = [SP], Uses = [SP] in {
-def ADJCALLSTACKDOWN : PseudoInstARC<(outs), (ins i32imm:$amt, i32imm:$amt2),
+def ADJCALLSTACKDOWN : PseudoInstSample<(outs), (ins i32imm:$amt, i32imm:$amt2),
                                "# ADJCALLSTACKDOWN $amt, $amt2",
                                [(callseq_start timm:$amt, timm:$amt2)]>;
-def ADJCALLSTACKUP : PseudoInstARC<(outs), (ins i32imm:$amt1, i32imm:$amt2),
+def ADJCALLSTACKUP : PseudoInstSample<(outs), (ins i32imm:$amt1, i32imm:$amt2),
                             "# ADJCALLSTACKUP $amt1",
                             [(callseq_end timm:$amt1, timm:$amt2)]>;
 }
 
-def GETFI : PseudoInstARC<(outs GPR32:$dst), (ins MEMii:$addr),
+def GETFI : PseudoInstSample<(outs GPR32:$dst), (ins MEMii:$addr),
                              "pldfi $dst, $addr",
                              [(set GPR32:$dst, FrameADDR_ri:$addr)]>;
 
 
-def ST_FAR : PseudoInstARC<(outs), (ins GPR32:$dst, MEMrlimm:$addr),
+def ST_FAR : PseudoInstSample<(outs), (ins GPR32:$dst, MEMrlimm:$addr),
                              "ST_FAR $dst, $addr",
                              [(store GPR32:$dst, AddrModeFar:$addr)]>;
 
-def STH_FAR : PseudoInstARC<(outs), (ins GPR32:$dst, MEMrlimm:$addr),
+def STH_FAR : PseudoInstSample<(outs), (ins GPR32:$dst, MEMrlimm:$addr),
                              "STH_FAR $dst, $addr",
                              [(truncstorei16 GPR32:$dst, AddrModeFar:$addr)]>;
 
-def STB_FAR : PseudoInstARC<(outs), (ins GPR32:$dst, MEMrlimm:$addr),
+def STB_FAR : PseudoInstSample<(outs), (ins GPR32:$dst, MEMrlimm:$addr),
                              "STB_FAR $dst, $addr",
                              [(truncstorei8 GPR32:$dst, AddrModeFar:$addr)]>;
 
@@ -118,7 +118,7 @@ def STB_FAR : PseudoInstARC<(outs), (ins GPR32:$dst, MEMrlimm:$addr),
 //===----------------------------------------------------------------------===//
 
 // Generic 3 operand binary instructions (i.e., add r0, r1, r2).
-multiclass ArcBinaryInst<bits<5> major, bits<6> mincode,
+multiclass SampleBinaryInst<bits<5> major, bits<6> mincode,
                        string opasm> {
   // 3 register variant.
   def _rrr : F32_DOP_RR<major, mincode, 0, (outs GPR32:$A),
@@ -172,7 +172,7 @@ multiclass ArcBinaryInst<bits<5> major, bits<6> mincode,
 
 // Special multivariant GEN4 DOP format instruction that take 2 registers.
 // This is the class that is used for various comparison instructions.
-multiclass ArcSpecialDOPInst<bits<6> subop, string opasm, bit F> {
+multiclass SampleSpecialDOPInst<bits<6> subop, string opasm, bit F> {
   def _rr : F32_DOP_RR<0b00100, subop, F, (outs), (ins GPR32:$B, GPR32:$C),
                !strconcat(opasm, "\t$B, $C"),
                []>;
@@ -188,7 +188,7 @@ multiclass ArcSpecialDOPInst<bits<6> subop, string opasm, bit F> {
 }
 
 // Generic 2-operand unary instructions.
-multiclass ArcUnaryInst<bits<5> major, bits<6> subop,
+multiclass SampleUnaryInst<bits<5> major, bits<6> subop,
                         string opasm> {
   def _rr : F32_SOP_RR<major, subop, 0, (outs GPR32:$B), (ins GPR32:$C),
                        !strconcat(opasm, "\t$B, $C"), []>;
@@ -199,13 +199,13 @@ multiclass ArcUnaryInst<bits<5> major, bits<6> subop,
 }
 
 
-multiclass ArcBinaryGEN4Inst<bits<6> mincode, string opasm> :
-  ArcBinaryInst<0b00100, mincode, opasm>;
-multiclass ArcBinaryEXT5Inst<bits<6> mincode, string opasm> :
-  ArcBinaryInst<0b00101, mincode, opasm>;
+multiclass SampleBinaryGEN4Inst<bits<6> mincode, string opasm> :
+  SampleBinaryInst<0b00100, mincode, opasm>;
+multiclass SampleBinaryEXT5Inst<bits<6> mincode, string opasm> :
+  SampleBinaryInst<0b00101, mincode, opasm>;
 
-multiclass ArcUnaryGEN4Inst<bits<6> mincode, string opasm> :
-  ArcUnaryInst<0b00100, mincode, opasm>;
+multiclass SampleUnaryGEN4Inst<bits<6> mincode, string opasm> :
+  SampleUnaryInst<0b00100, mincode, opasm>;
 
 // Pattern generation for differnt instruction variants.
 multiclass MultiPat<SDPatternOperator InFrag,
@@ -220,24 +220,24 @@ multiclass MultiPat<SDPatternOperator InFrag,
 // ---------------------------------------------------------------------------
 
 // Definitions for 3 operand binary instructions.
-defm ADD : ArcBinaryGEN4Inst<0b000000, "add">;
-defm SUB : ArcBinaryGEN4Inst<0b000010, "sub">;
-defm SUB1 : ArcBinaryGEN4Inst<0b010111, "sub1">;
-defm SUB2 : ArcBinaryGEN4Inst<0b011000, "sub2">;
-defm SUB3 : ArcBinaryGEN4Inst<0b011001, "sub3">;
-defm OR  : ArcBinaryGEN4Inst<0b000101, "or">;
-defm AND : ArcBinaryGEN4Inst<0b000100, "and">;
-defm XOR : ArcBinaryGEN4Inst<0b000111, "xor">;
-defm MAX : ArcBinaryGEN4Inst<0b001000, "max">;
-defm MIN : ArcBinaryGEN4Inst<0b001001, "min">;
-defm ASL : ArcBinaryEXT5Inst<0b000000, "asl">;
-defm LSR : ArcBinaryEXT5Inst<0b000001, "lsr">;
-defm ASR : ArcBinaryEXT5Inst<0b000010, "asr">;
-defm ROR : ArcBinaryEXT5Inst<0b000011, "ror">;
-defm MPY  : ArcBinaryGEN4Inst<0b011010, "mpy">;
-defm MPYM : ArcBinaryGEN4Inst<0b011011, "mpym">;
-defm MPYMU : ArcBinaryGEN4Inst<0b011100, "mpymu">;
-defm SETEQ : ArcBinaryGEN4Inst<0b111000, "seteq">;
+defm ADD : SampleBinaryGEN4Inst<0b000000, "add">;
+defm SUB : SampleBinaryGEN4Inst<0b000010, "sub">;
+defm SUB1 : SampleBinaryGEN4Inst<0b010111, "sub1">;
+defm SUB2 : SampleBinaryGEN4Inst<0b011000, "sub2">;
+defm SUB3 : SampleBinaryGEN4Inst<0b011001, "sub3">;
+defm OR  : SampleBinaryGEN4Inst<0b000101, "or">;
+defm AND : SampleBinaryGEN4Inst<0b000100, "and">;
+defm XOR : SampleBinaryGEN4Inst<0b000111, "xor">;
+defm MAX : SampleBinaryGEN4Inst<0b001000, "max">;
+defm MIN : SampleBinaryGEN4Inst<0b001001, "min">;
+defm ASL : SampleBinaryEXT5Inst<0b000000, "asl">;
+defm LSR : SampleBinaryEXT5Inst<0b000001, "lsr">;
+defm ASR : SampleBinaryEXT5Inst<0b000010, "asr">;
+defm ROR : SampleBinaryEXT5Inst<0b000011, "ror">;
+defm MPY  : SampleBinaryGEN4Inst<0b011010, "mpy">;
+defm MPYM : SampleBinaryGEN4Inst<0b011011, "mpym">;
+defm MPYMU : SampleBinaryGEN4Inst<0b011100, "mpymu">;
+defm SETEQ : SampleBinaryGEN4Inst<0b111000, "seteq">;
 
 // Patterns for 3 operand binary instructions.
 defm : MultiPat<add, ADD_rrr, ADD_rru6, ADD_rrlimm>;
@@ -259,8 +259,8 @@ defm : MultiPat<mulhu, MPYMU_rrr, MPYMU_rru6, MPYMU_rrlimm>;
 // Unary Instruction definitions.
 // ---------------------------------------------------------------------------
 // General unary instruction definitions.
-defm SEXB : ArcUnaryGEN4Inst<0b000101, "sexb">;
-defm SEXH : ArcUnaryGEN4Inst<0b000110, "sexh">;
+defm SEXB : SampleUnaryGEN4Inst<0b000101, "sexb">;
+defm SEXH : SampleUnaryGEN4Inst<0b000110, "sexh">;
 
 // General Unary Instruction fragments.
 def : Pat<(sext_inreg i32:$a, i8), (SEXB_rr i32:$a)>;
@@ -268,10 +268,10 @@ def : Pat<(sext_inreg i32:$a, i16), (SEXH_rr i32:$a)>;
 
 // Comparison instruction definition
 let isCompare = 1, Defs = [STATUS32] in {
-defm CMP : ArcSpecialDOPInst<0b001100, "cmp", 1>;
+defm CMP : SampleSpecialDOPInst<0b001100, "cmp", 1>;
 }
 
-def cmp : PatFrag<(ops node:$op1, node:$op2), (ARCcmp $op1, $op2)>;
+def cmp : PatFrag<(ops node:$op1, node:$op2), (Samplecmp $op1, $op2)>;
 defm : MultiPat<cmp, CMP_rr, CMP_ru6, CMP_rlimm>;
 
 // ---------------------------------------------------------------------------
@@ -297,7 +297,7 @@ def MOV_ru6 : F32_DOP_RU6<0b00100, 0b001010, 0,
                           "mov\t$B, $U6", []>;
 
 def cmov : PatFrag<(ops node:$op1, node:$op2, node:$cc),
-                   (ARCcmov $op1, $op2, $cc)>;
+                   (Samplecmov $op1, $op2, $cc)>;
 let Uses = [STATUS32] in {
 def MOVcc : F32_DOP_CC_RR<0b00100, 0b001010, 0,
                (outs GPR32:$B),
@@ -307,10 +307,10 @@ def MOVcc : F32_DOP_CC_RR<0b00100, 0b001010, 0,
   let Constraints = "$B = $fval";
 }
 }
-def : Pat<(ARCGAWrapper tglobaladdr:$addr),
+def : Pat<(SampleGAWrapper tglobaladdr:$addr),
            (MOV_rlimm tglobaladdr:$addr)>;
 
-def : Pat<(ARCGAWrapper tjumptable:$addr),
+def : Pat<(SampleGAWrapper tjumptable:$addr),
            (MOV_rlimm tjumptable:$addr)>;
 
 
@@ -343,16 +343,16 @@ let isBranch = 1, isTerminator = 1 in {
   // After register allocation, this can expand into either a limited range
   // Compare and branch (BRcc), or into CMP + Bcc.
   // At worst, this expands into 2 4-byte instructions.
-  def BRcc_rr_p : PseudoInstARC<(outs),
+  def BRcc_rr_p : PseudoInstSample<(outs),
                                 (ins btarget:$T, GPR32:$B, GPR32:$C, ccond:$cc),
                                 "pbr$cc\t$B, $C, $T", 
-                                [(ARCbrcc bb:$T, i32:$B, i32:$C, imm32:$cc)]>
+                                [(Samplebrcc bb:$T, i32:$B, i32:$C, imm32:$cc)]>
                                 { let Size = 8; }
 
-  def BRcc_ru6_p : PseudoInstARC<(outs),
+  def BRcc_ru6_p : PseudoInstSample<(outs),
                                  (ins btarget:$T, GPR32:$B, i32imm:$C, ccond:$cc),
                                  "pbr$cc\t$B, $C, $T",
-                                 [(ARCbrcc bb:$T, i32:$B, immU6:$C, imm32:$cc)]>
+                                 [(Samplebrcc bb:$T, i32:$B, immU6:$C, imm32:$cc)]>
                                  { let Size = 8; }
 } // let isBranch, isTerminator
 
@@ -374,12 +374,12 @@ let isBranch = 1, isTerminator = 1, isBarrier = 1 in {
 let isCall = 1, isBarrier = 1, Defs = [BLINK], Uses = [SP] in {
   // Direct unconditional call.
   def BL : F32_BR1_BL_UCOND_FAR<(outs), (ins calltargetS25:$S25),
-                      "bl\t$S25", [(ARCBranchLink tglobaladdr:$S25)]>;
+                      "bl\t$S25", [(SampleBranchLink tglobaladdr:$S25)]>;
 
   // Indirect unconditional call.
   let isIndirectBranch = 1 in
   def JL : F32_DOP_RR<0b00100, 0b100010, 0, (outs), (ins GPR32:$C),
-                     "jl\t[$C]", [(ARCJumpLink i32:$C)]>;
+                     "jl\t[$C]", [(SampleJumpLink i32:$C)]>;
 
   // Direct unconditional call.
   def JL_LImm : F32_DOP_RLIMM<0b00100, 0b100010, 0, (outs), (ins i32imm:$LImm),
@@ -387,13 +387,13 @@ let isCall = 1, isBarrier = 1, Defs = [BLINK], Uses = [SP] in {
 } // let isCall, isBarrier, Defs, Uses
 
 // Pattern to generate BL instruction.
-def : Pat<(ARCBranchLink texternalsym:$dst), (BL texternalsym:$dst)>;
+def : Pat<(SampleBranchLink texternalsym:$dst), (BL texternalsym:$dst)>;
 
 // Return from call.
 let isReturn = 1, isTerminator = 1, isBarrier = 1  in
 // This is a specialized 2-byte instruction that doesn't generalize
 // to any larger 2-byte class, so go ahead and define it here.
-def J_S_BLINK : InstARC<2, (outs), (ins), "j_s\t[%blink]", [(ret)]> {
+def J_S_BLINK : InstSample<2, (outs), (ins), "j_s\t[%blink]", [(ret)]> {
   let Inst{15-0} = 0b0111111011100000;
 }
 
@@ -547,7 +547,7 @@ def GP_ADD_S : F16_GP_LD_ADD<0b11, (ins immS<11>:$s),
 //----------------------------------------------------------------------------
 // Load PCL-Relative.
 //----------------------------------------------------------------------------
-def PCL_LD : InstARC<2, (outs GPR32:$b), (ins immU<10>:$u10),
+def PCL_LD : InstSample<2, (outs GPR32:$b), (ins immU<10>:$u10),
  "ld_s\t$b, [%pcl, $u10]", []> {
  
   bits<3> b; 
@@ -585,7 +585,7 @@ let isBranch = 1 in {
 } // let isBranch
 
 def BL_S :
-  InstARC<2, (outs), (ins btargetS13:$s13), "bl_s\t$s13", []> {
+  InstSample<2, (outs), (ins btargetS13:$s13), "bl_s\t$s13", []> {
 
   let Inst{15-11} = 0b11111;
   
@@ -794,7 +794,7 @@ let isReturn = 1, isTerminator = 1 in {
 // aa - incrementing mode. (N/A for LIMM).
 // di - uncached.
 // zz - data size.
-multiclass ArcLdInst<bits<2> zz, string asmop> {
+multiclass SampleLdInst<bits<2> zz, string asmop> {
   let mayLoad = 1 in {
   def _rs9 : F32_LD_ADDR<0, 0b00, 0, zz,
                          (outs GPR32:$A), (ins MEMrs9:$addr),
@@ -829,9 +829,9 @@ multiclass ArcLdInst<bits<2> zz, string asmop> {
 }
                          
 // Load instruction definitions.
-defm LD  : ArcLdInst<0b00, "ld">;
-defm LDH : ArcLdInst<0b10, "ldh">;
-defm LDB : ArcLdInst<0b01, "ldb">;
+defm LD  : SampleLdInst<0b00, "ld">;
+defm LDH : SampleLdInst<0b10, "ldh">;
+defm LDB : SampleLdInst<0b01, "ldb">;
 
 // Load instruction patterns.
 // 32-bit loads.
@@ -873,7 +873,7 @@ def : Pat<(sextloadi8 AddrModeS9:$addr),(LDB_X_rs9 AddrModeS9:$addr)>;
 // aa - incrementing mode. (N/A for LIMM).
 // di - uncached.
 // zz - data size.
-multiclass ArcStInst<bits<2> zz, string asmop> {
+multiclass SampleStInst<bits<2> zz, string asmop> {
   let mayStore = 1 in {
   def _rs9  : F32_ST_ADDR<0b00, 0, zz, (outs), (ins GPR32:$C, MEMrs9:$addr),
                          !strconcat(asmop, "\t$C, [$addr]"), []>;
@@ -889,9 +889,9 @@ multiclass ArcStInst<bits<2> zz, string asmop> {
 }
 
 // Store instruction definitions.
-defm ST  : ArcStInst<0b00, "st">;
-defm STH : ArcStInst<0b10, "sth">;
-defm STB : ArcStInst<0b01, "stb">;
+defm ST  : SampleStInst<0b00, "st">;
+defm STH : SampleStInst<0b10, "sth">;
+defm STB : SampleStInst<0b01, "stb">;
 
 // Store instruction patterns.
 // 32-bit stores

@@ -1,4 +1,4 @@
-//===-- SampleFrameLowering.h - Define frame lowering for Sample ----*- C++ -*-===//
+//===-- SampleFrameLowering.h - Define frame lowering for Sample -------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-//
+// This class implements the Sample specific frame lowering.
 //
 //===----------------------------------------------------------------------===//
 
@@ -17,6 +17,9 @@
 #include "Sample.h"
 #include "SampleSubtarget.h"
 #include "llvm/Target/TargetFrameLowering.h"
+#include "llvm/CodeGen/MachineBasicBlock.h"
+#include "llvm/CodeGen/MachineFrameInfo.h"
+#include "llvm/CodeGen/TargetFrameLowering.h"
 
 namespace llvm {
 class SampleSubtarget;

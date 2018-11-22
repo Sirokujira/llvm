@@ -1,4 +1,4 @@
-//===- ARC.h - Top-level interface for ARC representation -------*- C++ -*-===//
+//===- Sample.h - Top-level interface for Sample representation -------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -8,26 +8,26 @@
 //===----------------------------------------------------------------------===//
 //
 // This file contains the entry points for global functions defined in the LLVM
-// ARC back-end.
+// Sample back-end.
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_TARGET_ARC_ARC_H
-#define LLVM_LIB_TARGET_ARC_ARC_H
+#ifndef LLVM_LIB_TARGET_Sample_Sample_H
+#define LLVM_LIB_TARGET_Sample_Sample_H
 
-#include "MCTargetDesc/ARCMCTargetDesc.h"
+#include "MCTargetDesc/SampleMCTargetDesc.h"
 #include "llvm/Target/TargetMachine.h"
 
 namespace llvm {
 
 class FunctionPass;
-class ARCTargetMachine;
+class SampleTargetMachine;
 
-FunctionPass *createARCISelDag(ARCTargetMachine &TM,
+FunctionPass *createSampleISelDag(SampleTargetMachine &TM,
                                CodeGenOpt::Level OptLevel);
-FunctionPass *createARCExpandPseudosPass();
-FunctionPass *createARCBranchFinalizePass();
+FunctionPass *createSampleExpandPseudosPass();
+FunctionPass *createSampleBranchFinalizePass();
 
 } // end namespace llvm
 
-#endif // LLVM_LIB_TARGET_ARC_ARC_H
+#endif // LLVM_LIB_TARGET_Sample_Sample_H
