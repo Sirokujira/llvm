@@ -1,4 +1,4 @@
-//===-- RX600InstrInfoD.td - RISC-V 'D' instructions -------*- tablegen -*-===//
+//===-- RX600InstrInfoD.td - RX600 'D' instructions -------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,13 +7,13 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file describes the RISC-V instructions from the standard 'D',
+// This file describes the RX600 instructions from the standard 'D',
 // Double-Precision Floating-Point instruction set extension.
 //
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
-// RISC-V specific DAG Nodes.
+// RX600 specific DAG Nodes.
 //===----------------------------------------------------------------------===//
 
 def SDT_RX600BuildPairF64 : SDTypeProfile<1, 2, [SDTCisVT<0, f64>,
@@ -144,7 +144,7 @@ def FCVT_D_WU : FPUnaryOp_r<0b1101001, 0b000, FPR64, GPR, "fcvt.d.wu"> {
 }
 } // Predicates = [HasStdExtD]
 
-let Predicates = [HasStdExtD, IsRX600] in {
+let Predicates = [HasStdExtD, IsRV64] in {
 def FCVT_L_D : FPUnaryOp_r_frm<0b1100001, GPR, FPR64, "fcvt.l.d"> {
   let rs2 = 0b00010;
 }
@@ -172,7 +172,7 @@ def           : FPUnaryOpDynFrmAlias<FCVT_D_LU, "fcvt.d.lu", FPR64, GPR>;
 def FMV_D_X : FPUnaryOp_r<0b1111001, 0b000, FPR64, GPR, "fmv.d.x"> {
   let rs2 = 0b00000;
 }
-} // Predicates = [HasStdExtD, IsRX600]
+} // Predicates = [HasStdExtD, IsRV64]
 
 //===----------------------------------------------------------------------===//
 // Assembler Pseudo Instructions (User-Level ISA, Version 2.2, Chapter 20)
@@ -235,7 +235,7 @@ def : Pat<(fabs FPR64:$rs1), (FSGNJX_D $rs1, $rs1)>;
 def : PatFpr64Fpr64<fcopysign, FSGNJ_D>;
 def : Pat<(fcopysign FPR64:$rs1, (fneg FPR64:$rs2)), (FSGNJN_D $rs1, $rs2)>;
 
-// The RISC-V 2.2 user-level ISA spec defines fmin and fmax as returning the
+// The RX600 2.2 user-level ISA spec defines fmin and fmax as returning the
 // canonical NaN when giving a signaling NaN. This doesn't match the LLVM
 // behaviour (see https://bugs.llvm.org/show_bug.cgi?id=27363). However, the
 // draft 2.3 ISA spec changes the definition of fmin and fmax in a way that
@@ -254,7 +254,7 @@ def : PatFpr64Fpr64<setle, FLE_D>;
 def : PatFpr64Fpr64<setole, FLE_D>;
 
 // Define pattern expansions for setcc operations which aren't directly
-// handled by a RISC-V instruction and aren't expanded in the SelectionDAG
+// handled by a RX600 instruction and aren't expanded in the SelectionDAG
 // Legalizer.
 
 def : Pat<(setuo FPR64:$rs1, FPR64:$rs2),
@@ -272,7 +272,7 @@ defm : LdPat<load, FLD>;
 
 defm : StPat<store, FSD, FPR64>;
 
-/// Pseudo-instructions needed for the soft-float ABI with RX600
+/// Pseudo-instructions needed for the soft-float ABI with RV32D
 
 // Moves two GPRs to an FPR.
 let usesCustomInserter = 1 in

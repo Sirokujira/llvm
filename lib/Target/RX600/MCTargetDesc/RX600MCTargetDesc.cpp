@@ -57,7 +57,7 @@ static MCSubtargetInfo *createRX600MCSubtargetInfo(const Triple &TT,
                                                    StringRef CPU, StringRef FS) {
   std::string CPUName = CPU;
   if (CPUName.empty())
-    CPUName = TT.isArch64Bit() ? "generic-rv64" : "generic-rv32";
+    CPUName = TT.isArch64Bit() ? "rx600";
   return createRX600MCSubtargetInfoImpl(TT, CPUName, FS);
 }
 
@@ -85,7 +85,7 @@ static MCTargetStreamer *createRX600AsmTargetStreamer(MCStreamer &S,
 }
 
 extern "C" void LLVMInitializeRX600TargetMC() {
-  for (Target *T : {&getTheRX60032Target(), &getTheRX60064Target()}) {
+  for (Target *T : {&getTheRX600Target()}) {
     TargetRegistry::RegisterMCAsmInfo(*T, createRX600MCAsmInfo);
     TargetRegistry::RegisterMCInstrInfo(*T, createRX600MCInstrInfo);
     TargetRegistry::RegisterMCRegInfo(*T, createRX600MCRegisterInfo);

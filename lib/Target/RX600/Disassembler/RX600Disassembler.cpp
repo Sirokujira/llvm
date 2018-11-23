@@ -61,7 +61,7 @@ const EDInstInfo *RX600Disassembler::getEDInfo() const {
 }
 
 // Decoder tables for RX600 register
-// Base : RISC-V 設定
+// Base : RX600 設定
 // https://en.wikichip.org/wiki/risc-v/registers : Calling convention
 /*
 static const unsigned CPURegsTable[] = {

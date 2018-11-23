@@ -1,4 +1,4 @@
-//===-- RX600InstrInfoM.td - RISC-V 'M' instructions -------*- tablegen -*-===//
+//===-- RX600InstrInfoM.td - RX600 'M' instructions -------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file describes the RISC-V instructions from the standard 'M', Integer
+// This file describes the RX600 instructions from the standard 'M', Integer
 // Multiplication and Division instruction set extension.
 //
 //===----------------------------------------------------------------------===//
@@ -27,13 +27,13 @@ def REM     : ALU_rr<0b0000001, 0b110, "rem">;
 def REMU    : ALU_rr<0b0000001, 0b111, "remu">;
 } // Predicates = [HasStdExtM]
 
-let Predicates = [HasStdExtM, IsRX600] in {
+let Predicates = [HasStdExtM, IsRV64] in {
 def MULW    : ALUW_rr<0b0000001, 0b000, "mulw">;
 def DIVW    : ALUW_rr<0b0000001, 0b100, "divw">;
 def DIVUW   : ALUW_rr<0b0000001, 0b101, "divuw">;
 def REMW    : ALUW_rr<0b0000001, 0b110, "remw">;
 def REMUW   : ALUW_rr<0b0000001, 0b111, "remuw">;
-} // Predicates = [HasStdExtM, IsRX600]
+} // Predicates = [HasStdExtM, IsRV64]
 
 //===----------------------------------------------------------------------===//
 // Pseudo-instructions and codegen patterns

@@ -229,7 +229,7 @@ bool RX600TargetLowering::isZExtFree(SDValue Val, EVT VT2) const {
 }
 
 // Changes the condition code and swaps operands if necessary, so the SetCC
-// operation matches one of the comparisons supported directly in the RISC-V
+// operation matches one of the comparisons supported directly in the RX600
 // ISA.
 static void normaliseSetCC(SDValue &LHS, SDValue &RHS, ISD::CondCode &CC) {
   switch (CC) {
@@ -245,8 +245,8 @@ static void normaliseSetCC(SDValue &LHS, SDValue &RHS, ISD::CondCode &CC) {
   }
 }
 
-// Return the RISC-V branch opcode that matches the given DAG integer
-// condition code. The CondCode must be one of those supported by the RISC-V
+// Return the RX600 branch opcode that matches the given DAG integer
+// condition code. The CondCode must be one of those supported by the RX600
 // ISA (see normaliseSetCC).
 static unsigned getBranchOpcodeForIntCondCode(ISD::CondCode CC) {
   switch (CC) {
@@ -672,7 +672,7 @@ static bool CC_RX600Assign2XLen(unsigned XLen, CCState &State, CCValAssign VA1,
   return false;
 }
 
-// Implements the RISC-V calling convention. Returns true upon failure.
+// Implements the RX600 calling convention. Returns true upon failure.
 static bool CC_RX600(const DataLayout &DL, unsigned ValNo, MVT ValVT, MVT LocVT,
                      CCValAssign::LocInfo LocInfo, ISD::ArgFlagsTy ArgFlags,
                      CCState &State, bool IsFixed, bool IsRet, Type *OrigTy) {
@@ -689,7 +689,7 @@ static bool CC_RX600(const DataLayout &DL, unsigned ValNo, MVT ValVT, MVT LocVT,
   if (IsRet && ValNo > 1)
     return true;
 
-  // If this is a variadic argument, the RISC-V calling convention requires
+  // If this is a variadic argument, the RX600 calling convention requires
   // that it is assigned an 'even' or 'aligned' register if it has 8-byte
   // alignment (RX600) or 16-byte alignment (RX600). An aligned register should
   // be used regardless of whether the original argument was split during
@@ -1095,7 +1095,7 @@ bool RX600TargetLowering::IsEligibleForTailCallOptimization(
   // Exception-handling functions need a special set of instructions to
   // indicate a return to the hardware. Tail-calling another function would
   // probably break this.
-  // TODO: The "interrupt" attribute isn't currently defined by RISC-V. This
+  // TODO: The "interrupt" attribute isn't currently defined by RX600. This
   // should be expanded as new function attributes are introduced.
   if (Caller.hasFnAttribute("interrupt"))
     return false;

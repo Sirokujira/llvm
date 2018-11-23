@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 //
 //  These instruction format definitions are structured to match the
-//  description in the RISC-V User-Level ISA specification as closely as
+//  description in the RX600 User-Level ISA specification as closely as
 //  possible. For instance, the specification describes instructions with the
 //  MSB (31st bit) on the left and the LSB (0th bit) on the right. This is
 //  reflected in the order of parameters to each instruction class.
@@ -50,7 +50,7 @@ def InstFormatCJ     : InstFormat<15>;
 def InstFormatOther  : InstFormat<16>;
 
 // The following opcode names and match those given in Table 19.1 in the
-// RISC-V User-level ISA specification ("RISC-V base opcode map").
+// RX600 User-level ISA specification ("RX600 base opcode map").
 class RX600Opcode<bits<7> val> {
   bits<7> Value = val;
 }
@@ -108,7 +108,7 @@ class Pseudo<dag outs, dag ins, list<dag> pattern, string opcodestr = "", string
   let isCodeGenOnly = 1;
 }
 
-// Instruction formats are listed in the order they appear in the RISC-V
+// Instruction formats are listed in the order they appear in the RX600
 // instruction set manual (R, I, S, B, U, J) with sub-formats (e.g. RVInstR4,
 // RVInstRAtomic) sorted alphabetically.
 

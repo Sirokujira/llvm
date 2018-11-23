@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-//  This file describes the RISC-V C extension instruction formats.
+//  This file describes the RX600 C extension instruction formats.
 //
 //===----------------------------------------------------------------------===//
 

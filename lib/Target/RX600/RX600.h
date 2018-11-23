@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 //
 // This file contains the entry points for global functions defined in the LLVM
-// RISC-V back-end.
+// RX600 back-end.
 //
 //===----------------------------------------------------------------------===//
 

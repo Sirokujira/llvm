@@ -1,4 +1,4 @@
-//===-- RX600RegisterInfo.td - RISC-V Register defs --------*- tablegen -*-===//
+//===-- RX600RegisterInfo.td - RX600 Register defs --------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
-//  Declarations that describe the RISC-V register files
+//  Declarations that describe the RX600 register files
 //===----------------------------------------------------------------------===//
 
 let Namespace = "RX600" in {
@@ -44,6 +44,10 @@ def ABIRegAltName : RegAltNameIndex;
 // allocator to reduce the use of registers that can't be encoded in 16 bit
 // instructions. This affects register allocation even when compressed
 // instruction isn't targeted, we see no major negative codegen impact.
+
+// CPU レジスタセットを見て対応?
+// Arm 側のソースコードの対応も見ておいた方がよい?(レジスタの切り替えの点から)
+// https://www.renesas.com/jp/ja/doc/products/mpumcu/doc/rx_family/r01us0032jj0120_rxsm.pdf
 
 let RegAltNameIndices = [ABIRegAltName] in {
   def X0  : RX600Reg<0, "x0", ["zero"]>, DwarfRegNum<[0]>;
@@ -84,7 +88,7 @@ let RegAltNameIndices = [ABIRegAltName] in {
   }
 }
 
-def XLenVT : ValueTypeByHwMode<[RX600, DefaultMode],
+def XLenVT : ValueTypeByHwMode<[RV32, RV64, DefaultMode],
                                [i32,  i64,  i32]>;
 
 // The order of registers represents the preferred allocation sequence.
@@ -98,7 +102,7 @@ def GPR : RegisterClass<"RX600", [XLenVT], 32, (add
     (sequence "X%u", 0, 4)
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RX600,                            DefaultMode],
+      [RV32,              RV64,              DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
@@ -113,7 +117,7 @@ def GPRNoX0 : RegisterClass<"RX600", [XLenVT], 32, (add
     (sequence "X%u", 1, 4)
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RX600,                            DefaultMode],
+      [RV32,              RV64,              DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
@@ -126,7 +130,7 @@ def GPRNoX0X2 : RegisterClass<"RX600", [XLenVT], 32, (add
     X1, X3, X4
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RX600,                            DefaultMode],
+      [RV32,              RV64,              DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
@@ -135,7 +139,7 @@ def GPRC : RegisterClass<"RX600", [XLenVT], 32, (add
     (sequence "X%u", 8, 9)
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RX600,                            DefaultMode],
+      [RV32,              RV64,              DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
@@ -148,13 +152,13 @@ def GPRTC : RegisterClass<"RX600", [XLenVT], 32, (add
     (sequence "X%u", 28, 31)
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RX600,                            DefaultMode],
+      [RV32,              RV64,              DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
 def SP : RegisterClass<"RX600", [XLenVT], 32, (add X2)> {
   let RegInfos = RegInfoByHwMode<
-      [RX600,                            DefaultMode],
+      [RV32,              RV64,              DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 

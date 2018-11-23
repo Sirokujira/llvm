@@ -10,7 +10,7 @@
 include "llvm/Target/Target.td"
 
 //===----------------------------------------------------------------------===//
-// RISC-V subtarget features and instruction predicates.
+// RX600 subtarget features and instruction predicates.
 //===----------------------------------------------------------------------===//
 
 def FeatureStdExtM
@@ -47,10 +47,15 @@ def HasStdExtC : Predicate<"Subtarget->hasStdExtC()">,
 
 def Feature64Bit
     : SubtargetFeature<"64bit", "HasRX600", "true", "Implements RX600">;
+def IsRV64 : Predicate<"Subtarget->is64Bit()">,
+                       AssemblerPredicate<"Feature64Bit">;
+def IsRV32 : Predicate<"!Subtarget->is64Bit()">,
+                       AssemblerPredicate<"!Feature64Bit">;
 def IsRX600 : Predicate<"!Subtarget->is64Bit()">,
                        AssemblerPredicate<"!Feature64Bit">;
 
-def RX600           : HwMode<"-64bit">;
+def RV64           : HwMode<"+64bit">;
+def RV32           : HwMode<"-64bit">;
 
 def FeatureRelax
     : SubtargetFeature<"relax", "EnableLinkerRelax", "true",
@@ -65,15 +70,13 @@ include "RX600CallingConv.td"
 include "RX600InstrInfo.td"
 
 //===----------------------------------------------------------------------===//
-// RISC-V processors supported.
+// RX600 processors supported.
 //===----------------------------------------------------------------------===//
 
-def : ProcessorModel<"generic-rv32", NoSchedModel, []>;
-
-def : ProcessorModel<"generic-rv64", NoSchedModel, [Feature64Bit]>;
+def : ProcessorModel<"rx600", NoSchedModel, []>;
 
 //===----------------------------------------------------------------------===//
-// Define the RISC-V target.
+// Define the RX600 target.
 //===----------------------------------------------------------------------===//
 
 def RX600InstrInfo : InstrInfo {

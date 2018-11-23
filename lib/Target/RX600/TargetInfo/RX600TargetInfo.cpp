@@ -17,6 +17,6 @@ Target &getTheRX600Target() {
 }
 
 extern "C" void LLVMInitializeRISCVTargetInfo() {
-  RegisterTarget<Triple::RX600> X(getTheRX600Target(), "RX600",
+  RegisterTarget<Triple::rx600> X(getTheRX600Target(), "RX600",
                                     "32-bit Renesas CPU", "RX600");
 }

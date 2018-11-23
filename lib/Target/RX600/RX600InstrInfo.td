@@ -7,14 +7,14 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file describes the RISC-V instructions in TableGen format.
+// This file describes the RX600 instructions in TableGen format.
 //
 //===----------------------------------------------------------------------===//
 
 include "RX600InstrFormats.td"
 
 //===----------------------------------------------------------------------===//
-// RISC-V specific DAG Nodes.
+// RX600 specific DAG Nodes.
 //===----------------------------------------------------------------------===//
 
 def SDT_RX600Call         : SDTypeProfile<0, -1, [SDTCisVT<0, XLenVT>]>;
@@ -389,9 +389,9 @@ def CSRRWI : CSR_ii<0b101, "csrrwi">;
 def CSRRSI : CSR_ii<0b110, "csrrsi">;
 def CSRRCI : CSR_ii<0b111, "csrrci">;
 
-/// RX600I instructions
+/// RV64I instructions
 
-let Predicates = [IsRX600] in {
+let Predicates = [IsRV64] in {
 def LWU   : Load_ri<0b110, "lwu">;
 def LD    : Load_ri<0b011, "ld">;
 def SD    : Store_rri<0b011, "sd">;
@@ -410,7 +410,7 @@ def SUBW  : ALUW_rr<0b0100000, 0b000, "subw">;
 def SLLW  : ALUW_rr<0b0000000, 0b001, "sllw">;
 def SRLW  : ALUW_rr<0b0000000, 0b101, "srlw">;
 def SRAW  : ALUW_rr<0b0100000, 0b101, "sraw">;
-} // Predicates = [IsRX600]
+} // Predicates = [IsRV64]
 
 //===----------------------------------------------------------------------===//
 // Privileged instructions
@@ -455,9 +455,9 @@ def SFENCE_VMA : RVInstR<0b0001001, 0b000, OPC_SYSTEM, (outs),
 
 // TODO la
 // TODO lb lh lw
-// TODO RX600I: ld
+// TODO RV64I: ld
 // TODO sb sh sw
-// TODO RX600I: sd
+// TODO RV64I: sd
 
 def : InstAlias<"nop",           (ADDI      X0,      X0,       0)>;
 
@@ -474,10 +474,10 @@ def : InstAlias<"mv $rd, $rs",   (ADDI GPR:$rd, GPR:$rs,       0)>;
 def : InstAlias<"not $rd, $rs",  (XORI GPR:$rd, GPR:$rs,      -1)>;
 def : InstAlias<"neg $rd, $rs",  (SUB  GPR:$rd,      X0, GPR:$rs)>;
 
-let Predicates = [IsRX600] in {
+let Predicates = [IsRV64] in {
 def : InstAlias<"negw $rd, $rs",   (SUBW  GPR:$rd,      X0, GPR:$rs)>;
 def : InstAlias<"sext.w $rd, $rs", (ADDIW GPR:$rd, GPR:$rs,       0)>;
-} // Predicates = [IsRX600]
+} // Predicates = [IsRV64]
 
 def : InstAlias<"seqz $rd, $rs", (SLTIU GPR:$rd, GPR:$rs,       1)>;
 def : InstAlias<"snez $rd, $rs", (SLTU  GPR:$rd,      X0, GPR:$rs)>;
@@ -532,11 +532,11 @@ def : InstAlias<"rdinstret $rd", (CSRRS GPR:$rd, 0xC02, X0)>;
 def : InstAlias<"rdcycle $rd",   (CSRRS GPR:$rd, 0xC00, X0)>;
 def : InstAlias<"rdtime $rd",    (CSRRS GPR:$rd, 0xC01, X0)>;
 
-let Predicates = [IsRX600] in {
+let Predicates = [IsRV32] in {
 def : InstAlias<"rdinstreth $rd", (CSRRS GPR:$rd, 0xC82, X0)>;
 def : InstAlias<"rdcycleh $rd",   (CSRRS GPR:$rd, 0xC80, X0)>;
 def : InstAlias<"rdtimeh $rd",    (CSRRS GPR:$rd, 0xC81, X0)>;
-} // Predicates = [IsRX600]
+} // Predicates = [IsRV32]
 
 def : InstAlias<"csrr $rd, $csr", (CSRRS GPR:$rd, uimm12:$csr,      X0)>;
 def : InstAlias<"csrw $csr, $rs", (CSRRW      X0, uimm12:$csr, GPR:$rs)>;
@@ -565,7 +565,7 @@ def : InstAlias<"srl $rd, $rs1, $shamt",
                 (SRLI  GPR:$rd, GPR:$rs1, uimmlog2xlen:$shamt)>;
 def : InstAlias<"sra $rd, $rs1, $shamt",
                 (SRAI  GPR:$rd, GPR:$rs1, uimmlog2xlen:$shamt)>;
-let Predicates = [IsRX600] in {
+let Predicates = [IsRV64] in {
 def : InstAlias<"addw $rd, $rs1, $imm12",
                 (ADDIW  GPR:$rd, GPR:$rs1, simm12:$imm12)>;
 def : InstAlias<"sllw $rd, $rs1, $shamt",
@@ -574,7 +574,7 @@ def : InstAlias<"srlw $rd, $rs1, $shamt",
                 (SRLIW  GPR:$rd, GPR:$rs1, uimm5:$shamt)>;
 def : InstAlias<"sraw $rd, $rs1, $shamt",
                 (SRAIW  GPR:$rd, GPR:$rs1, uimm5:$shamt)>;
-} // Predicates = [IsRX600]
+} // Predicates = [IsRV64]
 def : InstAlias<"slt $rd, $rs1, $imm12",
                 (SLTI  GPR:$rd, GPR:$rs1, simm12:$imm12)>;
 def : InstAlias<"sltu $rd, $rs1, $imm12",
@@ -652,7 +652,7 @@ def : PatGprGpr<setult, SLTU>;
 def : PatGprSimm12<setult, SLTIU>;
 
 // Define pattern expansions for setcc operations that aren't directly
-// handled by a RISC-V instruction.
+// handled by a RX600 instruction.
 def : Pat<(seteq GPR:$rs1, GPR:$rs2), (SLTIU (XOR GPR:$rs1, GPR:$rs2), 1)>;
 def : Pat<(setne GPR:$rs1, GPR:$rs2), (SLTU X0, (XOR GPR:$rs1, GPR:$rs2))>;
 def : Pat<(setugt GPR:$rs1, GPR:$rs2), (SLTU GPR:$rs2, GPR:$rs1)>;
@@ -674,7 +674,7 @@ def Select_GPR_Using_CC_GPR : SelectCC_rrirr<GPR, GPR>;
 
 /// Branches and jumps
 
-// Match `(brcond (CondOp ..), ..)` and lower to the appropriate RISC-V branch
+// Match `(brcond (CondOp ..), ..)` and lower to the appropriate RX600 branch
 // instruction.
 class BccPat<PatFrag CondOp, RVInstB Inst>
     : Pat<(brcond (i32 (CondOp GPR:$rs1, GPR:$rs2)), bb:$imm12),
@@ -691,7 +691,7 @@ class BccSwapPat<PatFrag CondOp, RVInst InstBcc>
     : Pat<(brcond (i32 (CondOp GPR:$rs1, GPR:$rs2)), bb:$imm12),
           (InstBcc GPR:$rs2, GPR:$rs1, bb:$imm12)>;
 
-// Condition codes that don't have matching RISC-V branch instructions, but
+// Condition codes that don't have matching RX600 branch instructions, but
 // are trivially supported by swapping the two input operands
 def : BccSwapPat<setgt, BLT>;
 def : BccSwapPat<setle, BGE>;
@@ -804,7 +804,7 @@ defm : StPat<store, SW, GPR>;
 
 /// Fences
 
-// Refer to Table A.6 in the version 2.3 draft of the RISC-V Instruction Set
+// Refer to Table A.6 in the version 2.3 draft of the RX600 Instruction Set
 // Manual: Volume I.
 
 // fence acquire -> fence r, rw
@@ -818,7 +818,7 @@ def : Pat<(atomic_fence (i32 7), (imm)), (FENCE 0b11, 0b11)>;
 
 // Lowering for atomic load and store is defined in RX600InstrInfoA.td.
 // Although these are lowered to fence+load/store instructions defined in the
-// base RX600I/RX600I ISA, this lowering is only used when the A extension is
+// base RV32I/RV64I ISA, this lowering is only used when the A extension is
 // present. This is necessary as it isn't valid to mix __atomic_* libcalls
 // with inline atomic operations for the same object.
 

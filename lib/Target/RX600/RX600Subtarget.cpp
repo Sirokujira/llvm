@@ -32,7 +32,7 @@ RX600Subtarget &RX600Subtarget::initializeSubtargetDependencies(StringRef CPU,
   // Determine default and user-specified characteristics
   std::string CPUName = CPU;
   if (CPUName.empty())
-    CPUName = Is64Bit ? "generic-rv64" : "generic-rv32";
+    CPUName = "rx600";
   ParseSubtargetFeatures(CPUName, FS);
   if (Is64Bit) {
     XLenVT = MVT::i64;

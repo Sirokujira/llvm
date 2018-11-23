@@ -1,4 +1,4 @@
-//===-- RX600InstrInfoF.td - RISC-V 'F' instructions -------*- tablegen -*-===//
+//===-- RX600InstrInfoF.td - RX600 'F' instructions -------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file describes the RISC-V instructions from the standard 'F',
+// This file describes the RX600 instructions from the standard 'F',
 // Single-Precision Floating-Point instruction set extension.
 //
 //===----------------------------------------------------------------------===//
@@ -166,7 +166,7 @@ def FMV_W_X : FPUnaryOp_r<0b1111000, 0b000, FPR32, GPR, "fmv.w.x"> {
 }
 } // Predicates = [HasStdExtF]
 
-let Predicates = [HasStdExtF, IsRX600] in {
+let Predicates = [HasStdExtF, IsRV64] in {
 def FCVT_L_S  : FPUnaryOp_r_frm<0b1100000, GPR, FPR32, "fcvt.l.s"> {
   let rs2 = 0b00010;
 }
@@ -186,7 +186,7 @@ def FCVT_S_LU : FPUnaryOp_r_frm<0b1101000, FPR32, GPR, "fcvt.s.lu"> {
   let rs2 = 0b00011;
 }
 def           : FPUnaryOpDynFrmAlias<FCVT_S_LU, "fcvt.s.lu", FPR32, GPR>;
-} // Predicates = [HasStdExtF, IsRX600]
+} // Predicates = [HasStdExtF, IsRV64]
 
 //===----------------------------------------------------------------------===//
 // Assembler Pseudo Instructions (User-Level ISA, Version 2.2, Chapter 20)
@@ -275,7 +275,7 @@ def : Pat<(fabs FPR32:$rs1), (FSGNJX_S $rs1, $rs1)>;
 def : PatFpr32Fpr32<fcopysign, FSGNJ_S>;
 def : Pat<(fcopysign FPR32:$rs1, (fneg FPR32:$rs2)), (FSGNJN_S $rs1, $rs2)>;
 
-// The RISC-V 2.2 user-level ISA spec defines fmin and fmax as returning the
+// The RX600 1.2 user-level ISA spec defines fmin and fmax as returning the
 // canonical NaN when given a signaling NaN. This doesn't match the LLVM
 // behaviour (see https://bugs.llvm.org/show_bug.cgi?id=27363). However, the
 // draft 2.3 ISA spec changes the definition of fmin and fmax in a way that
@@ -294,7 +294,7 @@ def : PatFpr32Fpr32<setle, FLE_S>;
 def : PatFpr32Fpr32<setole, FLE_S>;
 
 // Define pattern expansions for setcc operations which aren't directly
-// handled by a RISC-V instruction and aren't expanded in the SelectionDAG
+// handled by a RX600 instruction and aren't expanded in the SelectionDAG
 // Legalizer.
 
 def : Pat<(setuo FPR32:$rs1, FPR32:$rs2),

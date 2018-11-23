@@ -26,7 +26,6 @@ using namespace llvm;
 
 extern "C" void LLVMInitializeRX600Target() {
   RegisterTargetMachine<RX600TargetMachine> X(getTheRX600Target());
-  RegisterTargetMachine<RX600TargetMachine> Y(getTheRX60064Target());
 }
 
 static std::string computeDataLayout(const Triple &TT) {
