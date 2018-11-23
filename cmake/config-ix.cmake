@@ -404,7 +404,7 @@ elseif (LLVM_NATIVE_ARCH MATCHES "riscv32")
   set(LLVM_NATIVE_ARCH RISCV)
 elseif (LLVM_NATIVE_ARCH MATCHES "riscv64")
   set(LLVM_NATIVE_ARCH RISCV)
-elseif (LLVM_NATIVE_ARCH MATCHES "rx600") // <- ’Ç‰Á•”•ª
+elseif (LLVM_NATIVE_ARCH MATCHES "rx600") # <- ’Ç‰Á•”•ª
   set(LLVM_NATIVE_ARCH RX600)
 else ()
   message(FATAL_ERROR "Unknown architecture ${LLVM_NATIVE_ARCH}")
