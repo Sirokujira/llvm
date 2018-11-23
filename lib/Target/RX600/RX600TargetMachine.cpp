@@ -25,7 +25,7 @@
 using namespace llvm;
 
 extern "C" void LLVMInitializeRX600Target() {
-  RegisterTargetMachine<RX600TargetMachine> X(getTheRX60032Target());
+  RegisterTargetMachine<RX600TargetMachine> X(getTheRX600Target());
   RegisterTargetMachine<RX600TargetMachine> Y(getTheRX60064Target());
 }
 
@@ -33,7 +33,7 @@ static std::string computeDataLayout(const Triple &TT) {
   if (TT.isArch64Bit()) {
     return "e-m:e-p:64:64-i64:64-i128:128-n64-S128";
   } else {
-    assert(TT.isArch32Bit() && "only RV32 and RV64 are currently supported");
+    assert(TT.isArch32Bit() && "only RX600 are currently supported");
     return "e-m:e-p:32:32-i64:64-n32-S128";
   }
 }

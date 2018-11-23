@@ -1,4 +1,4 @@
-//===-- RX600BaseInfo.h - Top level definitions for MIPS MC ------*- C++ -*-===//
+//===-- RX600BaseInfo.h - Top level definitions for RX600 MC ----*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,61 +7,104 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file contains small standalone helper functions and enum definitions for
-// the RX600 target useful for the compiler back-end and the MC libraries.
+// This file contains small standalone enum definitions for the RX600 target
+// useful for the compiler back-end and the MC libraries.
 //
 //===----------------------------------------------------------------------===//
-#ifndef SAMPLEBASEINFO_H
-#define SAMPLEASEINFO_H
+#ifndef LLVM_LIB_TARGET_RX600_MCTARGETDESC_RX600BASEINFO_H
+#define LLVM_LIB_TARGET_RX600_MCTARGETDESC_RX600BASEINFO_H
 
-//#include "RX600FixupKinds.h"
 #include "RX600MCTargetDesc.h"
-#include "llvm/MC/MCExpr.h"
-#include "llvm/Support/DataTypes.h"
-#include "llvm/Support/ErrorHandling.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/StringSwitch.h"
 
 namespace llvm {
 
-/// getRX600RegisterNumbering - Given the enum value for some register,
-/// return the number that it corresponds to.
-inline static unsigned getRX600RegisterNumbering(unsigned RegEnum)
-{
-  switch (RegEnum) {
-  case RX600::ZERO:
-    return 0;
-  case RX600::V0:
-    return 1;
-  case RX600::A0:
-    return 2;
-  case RX600::A1:
-    return 3;
-  case RX600::A2:
-    return 4;
-  case RX600::A3:
-    return 5;
-  case RX600::T0:
-    return 6;
-  case RX600::T1:
-    return 7;
-  case RX600::T2:
-    return 8;
-  case RX600::T3:
-    return 9;
-  case RX600::S0:
-    return 10;
-  case RX600::S1:
-    return 11;
-  case RX600::S2:
-    return 12;
-  case RX600::S3:
-    return 13;
-  case RX600::SP:
-    return 14;
-  case RX600::RA:
-    return 15;
-  default: llvm_unreachable("Unknown register number!");
+// RX600II - This namespace holds all of the target specific flags that
+// instruction info tracks. All definitions must match RX600InstrFormats.td.
+namespace RX600II {
+enum {
+  InstFormatPseudo = 0,
+  InstFormatR = 1,
+  InstFormatR4 = 2,
+  InstFormatI = 3,
+  InstFormatS = 4,
+  InstFormatB = 5,
+  InstFormatU = 6,
+  InstFormatJ = 7,
+  InstFormatCR = 8,
+  InstFormatCI = 9,
+  InstFormatCSS = 10,
+  InstFormatCIW = 11,
+  InstFormatCL = 12,
+  InstFormatCS = 13,
+  InstFormatCB = 14,
+  InstFormatCJ = 15,
+  InstFormatOther = 16,
+
+  InstFormatMask = 31
+};
+
+enum {
+  MO_None,
+  MO_LO,
+  MO_HI,
+  MO_PCREL_HI,
+};
+} // namespace RX600II
+
+// Describes the predecessor/successor bits used in the FENCE instruction.
+namespace RX600FenceField {
+enum FenceField {
+  I = 8,
+  O = 4,
+  R = 2,
+  W = 1
+};
+}
+
+// Describes the supported floating point rounding mode encodings.
+namespace RX600FPRndMode {
+enum RoundingMode {
+  RNE = 0,
+  RTZ = 1,
+  RDN = 2,
+  RUP = 3,
+  RMM = 4,
+  DYN = 7,
+  Invalid
+};
+
+inline static StringRef roundingModeToString(RoundingMode RndMode) {
+  switch (RndMode) {
+  default:
+    llvm_unreachable("Unknown floating point rounding mode");
+  case RX600FPRndMode::RNE:
+    return "rne";
+  case RX600FPRndMode::RTZ:
+    return "rtz";
+  case RX600FPRndMode::RDN:
+    return "rdn";
+  case RX600FPRndMode::RUP:
+    return "rup";
+  case RX600FPRndMode::RMM:
+    return "rmm";
+  case RX600FPRndMode::DYN:
+    return "dyn";
   }
 }
+
+inline static RoundingMode stringToRoundingMode(StringRef Str) {
+  return StringSwitch<RoundingMode>(Str)
+      .Case("rne", RX600FPRndMode::RNE)
+      .Case("rtz", RX600FPRndMode::RTZ)
+      .Case("rdn", RX600FPRndMode::RDN)
+      .Case("rup", RX600FPRndMode::RUP)
+      .Case("rmm", RX600FPRndMode::RMM)
+      .Case("dyn", RX600FPRndMode::DYN)
+      .Default(RX600FPRndMode::Invalid);
 }
+} // namespace RX600FPRndMode
+} // namespace llvm
 
 #endif

@@ -1,4 +1,4 @@
-//===-- RX600MCAsmInfo.cpp - RX600 asm properties -----------------------===//
+//===-- RX600MCAsmInfo.cpp - RX600 Asm properties -------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -12,18 +12,16 @@
 //===----------------------------------------------------------------------===//
 
 #include "RX600MCAsmInfo.h"
-#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/Triple.h"
 using namespace llvm;
 
-RX600MCAsmInfo::RX600MCAsmInfo(const Target &T, StringRef TT) {
-  PointerSize = 4;
+void RX600MCAsmInfo::anchor() {}
 
-  PrivateGlobalPrefix = ".L";
-  //WeakRefDirective ="\t.weak\t";
-  PCSymbol=".";
-  CommentString = ";";
-
+RX600MCAsmInfo::RX600MCAsmInfo(const Triple &TT) {
+  CodePointerSize = CalleeSaveStackSlotSize = TT.isArch64Bit() ? 8 : 4;
+  CommentString = "#";
   AlignmentIsInBytes = false;
-  AllowNameToStartWithDigit = true;
-  UsesELFSectionDirectiveForBSS = true;
+  SupportsDebugInformation = true;
+  Data16bitsDirective = "\t.half\t";
+  Data32bitsDirective = "\t.word\t";
 }

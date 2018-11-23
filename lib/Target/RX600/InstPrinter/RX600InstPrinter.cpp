@@ -1,4 +1,4 @@
-//===-- RX600InstPrinter.cpp - Convert RX600 MCInst to assembly syntax ------===//
+//===-- RX600InstPrinter.cpp - Convert RX600 MCInst to asm syntax ---------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -11,50 +11,92 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define DEBUG_TYPE "asm-printer"
 #include "RX600InstPrinter.h"
-#include "llvm/ADT/StringExtras.h"
+#include "MCTargetDesc/RX600BaseInfo.h"
+#include "MCTargetDesc/RX600MCExpr.h"
+#include "llvm/MC/MCAsmInfo.h"
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"
-#include "llvm/MC/MCInstrInfo.h"
+#include "llvm/MC/MCRegisterInfo.h"
+#include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/MCSymbol.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/FormattedStream.h"
 using namespace llvm;
 
+#define DEBUG_TYPE "asm-printer"
+
+// Include the auto-generated portion of the assembly writer.
+#define PRINT_ALIAS_INSTR
 #include "RX600GenAsmWriter.inc"
 
-void RX600InstPrinter::
-printRegName(raw_ostream &OS, unsigned RegNo) const {
-  OS << '$' << StringRef(getRegisterName(RegNo)).lower();
-}
+// Include the auto-generated portion of the compress emitter.
+#define GEN_UNCOMPRESS_INSTR
+#include "RX600GenCompressInstEmitter.inc"
 
-void RX600InstPrinter::
-printInst(const MCInst *MI, raw_ostream &O, StringRef Annot) {
-  DEBUG(dbgs() << ">>> printInst:"; MI->dump());
-  printInstruction(MI, O);
+static cl::opt<bool>
+NoAliases("rx600-no-aliases",
+            cl::desc("Disable the emission of assembler pseudo instructions"),
+            cl::init(false),
+            cl::Hidden);
+
+void RX600InstPrinter::printInst(const MCInst *MI, raw_ostream &O,
+                                 StringRef Annot, const MCSubtargetInfo &STI) {
+  bool Res = false;
+  const MCInst *NewMI = MI;
+  MCInst UncompressedMI;
+  if (!NoAliases)
+    Res = uncompressInst(UncompressedMI, *MI, MRI, STI);
+  if (Res)
+    NewMI = const_cast<MCInst*>(&UncompressedMI);
+  if (NoAliases || !printAliasInstr(NewMI, STI, O))
+    printInstruction(NewMI, STI, O);
   printAnnotation(O, Annot);
 }
 
-void RX600InstPrinter::
-printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O) {
-  DEBUG(dbgs() << ">>> printOperand:" << *MI << " OpNo:" << OpNo << "\n");
-  const MCOperand &Op = MI->getOperand(OpNo);
-  if (Op.isReg()) {
-    printRegName(O, Op.getReg());
-  } else if (Op.isImm()) {
-    O << Op.getImm();
-  } else {
-    assert(Op.isExpr() && "unknown operand kind in printOperand");
-    O << *Op.getExpr();
-  }
+void RX600InstPrinter::printRegName(raw_ostream &O, unsigned RegNo) const {
+  O << getRegisterName(RegNo);
 }
 
-void RX600InstPrinter::
-printMemOperand(const MCInst *MI, int opNum, raw_ostream &O) {
-  DEBUG(dbgs() << ">>> printMemOperand:"; MI->dump());
-  printOperand(MI, opNum+1, O);
-  O << "(";
-  printOperand(MI, opNum, O);
-  O << ")";
+void RX600InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
+                                    const MCSubtargetInfo &STI,
+                                    raw_ostream &O, const char *Modifier) {
+  assert((Modifier == 0 || Modifier[0] == 0) && "No modifiers supported");
+  const MCOperand &MO = MI->getOperand(OpNo);
+
+  if (MO.isReg()) {
+    printRegName(O, MO.getReg());
+    return;
+  }
+
+  if (MO.isImm()) {
+    O << MO.getImm();
+    return;
+  }
+
+  assert(MO.isExpr() && "Unknown operand kind in printOperand");
+  MO.getExpr()->print(O, &MAI);
+}
+
+void RX600InstPrinter::printFenceArg(const MCInst *MI, unsigned OpNo,
+                                     const MCSubtargetInfo &STI,
+                                     raw_ostream &O) {
+  unsigned FenceArg = MI->getOperand(OpNo).getImm();
+  if ((FenceArg & RX600FenceField::I) != 0)
+    O << 'i';
+  if ((FenceArg & RX600FenceField::O) != 0)
+    O << 'o';
+  if ((FenceArg & RX600FenceField::R) != 0)
+    O << 'r';
+  if ((FenceArg & RX600FenceField::W) != 0)
+    O << 'w';
+}
+
+void RX600InstPrinter::printFRMArg(const MCInst *MI, unsigned OpNo,
+                                   const MCSubtargetInfo &STI,
+                                   raw_ostream &O) {
+  auto FRMArg =
+      static_cast<RX600FPRndMode::RoundingMode>(MI->getOperand(OpNo).getImm());
+  O << RX600FPRndMode::roundingModeToString(FRMArg);
 }

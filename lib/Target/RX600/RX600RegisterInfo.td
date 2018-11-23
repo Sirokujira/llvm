@@ -84,7 +84,7 @@ let RegAltNameIndices = [ABIRegAltName] in {
   }
 }
 
-def XLenVT : ValueTypeByHwMode<[RV32, RV64, DefaultMode],
+def XLenVT : ValueTypeByHwMode<[RX600, DefaultMode],
                                [i32,  i64,  i32]>;
 
 // The order of registers represents the preferred allocation sequence.
@@ -98,7 +98,7 @@ def GPR : RegisterClass<"RX600", [XLenVT], 32, (add
     (sequence "X%u", 0, 4)
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RV32,              RV64,              DefaultMode],
+      [RX600,                            DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
@@ -113,7 +113,7 @@ def GPRNoX0 : RegisterClass<"RX600", [XLenVT], 32, (add
     (sequence "X%u", 1, 4)
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RV32,              RV64,              DefaultMode],
+      [RX600,                            DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
@@ -126,7 +126,7 @@ def GPRNoX0X2 : RegisterClass<"RX600", [XLenVT], 32, (add
     X1, X3, X4
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RV32,              RV64,              DefaultMode],
+      [RX600,                            DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
@@ -135,7 +135,7 @@ def GPRC : RegisterClass<"RX600", [XLenVT], 32, (add
     (sequence "X%u", 8, 9)
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RV32,              RV64,              DefaultMode],
+      [RX600,                            DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
@@ -148,13 +148,13 @@ def GPRTC : RegisterClass<"RX600", [XLenVT], 32, (add
     (sequence "X%u", 28, 31)
   )> {
   let RegInfos = RegInfoByHwMode<
-      [RV32,              RV64,              DefaultMode],
+      [RX600,                            DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
 def SP : RegisterClass<"RX600", [XLenVT], 32, (add X2)> {
   let RegInfos = RegInfoByHwMode<
-      [RV32,              RV64,              DefaultMode],
+      [RX600,                            DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 

@@ -389,9 +389,9 @@ def CSRRWI : CSR_ii<0b101, "csrrwi">;
 def CSRRSI : CSR_ii<0b110, "csrrsi">;
 def CSRRCI : CSR_ii<0b111, "csrrci">;
 
-/// RV64I instructions
+/// RX600I instructions
 
-let Predicates = [IsRV64] in {
+let Predicates = [IsRX600] in {
 def LWU   : Load_ri<0b110, "lwu">;
 def LD    : Load_ri<0b011, "ld">;
 def SD    : Store_rri<0b011, "sd">;
@@ -410,7 +410,7 @@ def SUBW  : ALUW_rr<0b0100000, 0b000, "subw">;
 def SLLW  : ALUW_rr<0b0000000, 0b001, "sllw">;
 def SRLW  : ALUW_rr<0b0000000, 0b101, "srlw">;
 def SRAW  : ALUW_rr<0b0100000, 0b101, "sraw">;
-} // Predicates = [IsRV64]
+} // Predicates = [IsRX600]
 
 //===----------------------------------------------------------------------===//
 // Privileged instructions
@@ -455,9 +455,9 @@ def SFENCE_VMA : RVInstR<0b0001001, 0b000, OPC_SYSTEM, (outs),
 
 // TODO la
 // TODO lb lh lw
-// TODO RV64I: ld
+// TODO RX600I: ld
 // TODO sb sh sw
-// TODO RV64I: sd
+// TODO RX600I: sd
 
 def : InstAlias<"nop",           (ADDI      X0,      X0,       0)>;
 
@@ -474,10 +474,10 @@ def : InstAlias<"mv $rd, $rs",   (ADDI GPR:$rd, GPR:$rs,       0)>;
 def : InstAlias<"not $rd, $rs",  (XORI GPR:$rd, GPR:$rs,      -1)>;
 def : InstAlias<"neg $rd, $rs",  (SUB  GPR:$rd,      X0, GPR:$rs)>;
 
-let Predicates = [IsRV64] in {
+let Predicates = [IsRX600] in {
 def : InstAlias<"negw $rd, $rs",   (SUBW  GPR:$rd,      X0, GPR:$rs)>;
 def : InstAlias<"sext.w $rd, $rs", (ADDIW GPR:$rd, GPR:$rs,       0)>;
-} // Predicates = [IsRV64]
+} // Predicates = [IsRX600]
 
 def : InstAlias<"seqz $rd, $rs", (SLTIU GPR:$rd, GPR:$rs,       1)>;
 def : InstAlias<"snez $rd, $rs", (SLTU  GPR:$rd,      X0, GPR:$rs)>;
@@ -532,11 +532,11 @@ def : InstAlias<"rdinstret $rd", (CSRRS GPR:$rd, 0xC02, X0)>;
 def : InstAlias<"rdcycle $rd",   (CSRRS GPR:$rd, 0xC00, X0)>;
 def : InstAlias<"rdtime $rd",    (CSRRS GPR:$rd, 0xC01, X0)>;
 
-let Predicates = [IsRV32] in {
+let Predicates = [IsRX600] in {
 def : InstAlias<"rdinstreth $rd", (CSRRS GPR:$rd, 0xC82, X0)>;
 def : InstAlias<"rdcycleh $rd",   (CSRRS GPR:$rd, 0xC80, X0)>;
 def : InstAlias<"rdtimeh $rd",    (CSRRS GPR:$rd, 0xC81, X0)>;
-} // Predicates = [IsRV32]
+} // Predicates = [IsRX600]
 
 def : InstAlias<"csrr $rd, $csr", (CSRRS GPR:$rd, uimm12:$csr,      X0)>;
 def : InstAlias<"csrw $csr, $rs", (CSRRW      X0, uimm12:$csr, GPR:$rs)>;
@@ -565,7 +565,7 @@ def : InstAlias<"srl $rd, $rs1, $shamt",
                 (SRLI  GPR:$rd, GPR:$rs1, uimmlog2xlen:$shamt)>;
 def : InstAlias<"sra $rd, $rs1, $shamt",
                 (SRAI  GPR:$rd, GPR:$rs1, uimmlog2xlen:$shamt)>;
-let Predicates = [IsRV64] in {
+let Predicates = [IsRX600] in {
 def : InstAlias<"addw $rd, $rs1, $imm12",
                 (ADDIW  GPR:$rd, GPR:$rs1, simm12:$imm12)>;
 def : InstAlias<"sllw $rd, $rs1, $shamt",
@@ -574,7 +574,7 @@ def : InstAlias<"srlw $rd, $rs1, $shamt",
                 (SRLIW  GPR:$rd, GPR:$rs1, uimm5:$shamt)>;
 def : InstAlias<"sraw $rd, $rs1, $shamt",
                 (SRAIW  GPR:$rd, GPR:$rs1, uimm5:$shamt)>;
-} // Predicates = [IsRV64]
+} // Predicates = [IsRX600]
 def : InstAlias<"slt $rd, $rs1, $imm12",
                 (SLTI  GPR:$rd, GPR:$rs1, simm12:$imm12)>;
 def : InstAlias<"sltu $rd, $rs1, $imm12",
@@ -818,7 +818,7 @@ def : Pat<(atomic_fence (i32 7), (imm)), (FENCE 0b11, 0b11)>;
 
 // Lowering for atomic load and store is defined in RX600InstrInfoA.td.
 // Although these are lowered to fence+load/store instructions defined in the
-// base RV32I/RV64I ISA, this lowering is only used when the A extension is
+// base RX600I/RX600I ISA, this lowering is only used when the A extension is
 // present. This is necessary as it isn't valid to mix __atomic_* libcalls
 // with inline atomic operations for the same object.
 

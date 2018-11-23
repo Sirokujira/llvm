@@ -1,4 +1,4 @@
-//===-- RX600ELFObjectWriter.cpp - RX600 ELF Writer -------------------------===//
+//===-- RX600ELFObjectWriter.cpp - RX600 ELF Writer -----------------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,35 +7,30 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "MCTargetDesc/RX600BaseInfo.h"
 #include "MCTargetDesc/RX600FixupKinds.h"
 #include "MCTargetDesc/RX600MCTargetDesc.h"
-#include "llvm/MC/MCAssembler.h"
 #include "llvm/MC/MCELFObjectWriter.h"
-#include "llvm/MC/MCExpr.h"
-#include "llvm/MC/MCSection.h"
-#include "llvm/MC/MCValue.h"
+#include "llvm/MC/MCFixup.h"
+#include "llvm/MC/MCObjectWriter.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <list>
 
 using namespace llvm;
 
 namespace {
-struct RelEntry {
-  RelEntry(const ELFRelocationEntry &R, const MCSymbol *S, int64_t O) :
-      Reloc(R), Sym(S), Offset(O) {}
-  ELFRelocationEntry Reloc;
-  const MCSymbol *Sym;
-  int64_t Offset;
-};
-
-typedef std::list<RelEntry> RelLs;
-typedef RelLs::iterator RelLsIter;
-
 class RX600ELFObjectWriter : public MCELFObjectTargetWriter {
- public:
-  RX600ELFObjectWriter(uint8_t OSABI);
-  virtual ~RX600ELFObjectWriter();
+public:
+  RX600ELFObjectWriter(uint8_t OSABI, bool Is64Bit);
+
+  ~RX600ELFObjectWriter() override;
+
+  // Return true if the given relocation must be with a symbol rather than
+  // section plus offset.
+  bool needsRelocateWithSymbol(const MCSymbol &Sym,
+                               unsigned Type) const override {
+    // TODO: this is very conservative, update once RX600 psABI requirements
+    //       are clarified.
+    return true;
+  }
 
   // オブジェクトを生成するときやリンク時にアドレス解決するために
   // ELFObjectWriterなどから参照される
@@ -45,36 +40,68 @@ class RX600ELFObjectWriter : public MCELFObjectTargetWriter {
 };
 }
 
-RX600ELFObjectWriter::
-RX600ELFObjectWriter(uint8_t OSABI)
-    : MCELFObjectTargetWriter(/*_is64Bit*/ false, OSABI, ELF::EM_NONE,
-                              /*HasRelocationAddend*/ false) {}
+RX600ELFObjectWriter::RX600ELFObjectWriter(uint8_t OSABI, bool Is64Bit)
+    : MCELFObjectTargetWriter(Is64Bit, OSABI, ELF::EM_RX600,
+                              /*HasRelocationAddend*/ true) {}
 
 RX600ELFObjectWriter::~RX600ELFObjectWriter() {}
 
-unsigned RX600ELFObjectWriter::
-GetRelocType(const MCValue &Target,
-             const MCFixup &Fixup,
-             bool IsPCRel,
-             bool IsRelocWithSymbol,
-             int64_t Addend) const {
-  // determine the type of the relocation
-  unsigned Type = (unsigned)ELF::R_MIPS_NONE;
-  unsigned Kind = (unsigned)Fixup.getKind();
-
-  switch (Kind) {
+unsigned RX600ELFObjectWriter::getRelocType(MCContext &Ctx,
+                                            const MCValue &Target,
+                                            const MCFixup &Fixup,
+                                            bool IsPCRel) const {
+  // Determine the type of the relocation
+  switch ((unsigned)Fixup.getKind()) {
   default:
     llvm_unreachable("invalid fixup kind!");
-  case RX600::fixup_RX600_24:
-    Type = ELF::R_MIPS_26;
-    break;
+  case FK_Data_4:
+    return ELF::R_RX600_32;
+  case FK_Data_8:
+    return ELF::R_RX600_64;
+  case FK_Data_Add_1:
+    return ELF::R_RX600_ADD8;
+  case FK_Data_Add_2:
+    return ELF::R_RX600_ADD16;
+  case FK_Data_Add_4:
+    return ELF::R_RX600_ADD32;
+  case FK_Data_Add_8:
+    return ELF::R_RX600_ADD64;
+  case FK_Data_Sub_1:
+    return ELF::R_RX600_SUB8;
+  case FK_Data_Sub_2:
+    return ELF::R_RX600_SUB16;
+  case FK_Data_Sub_4:
+    return ELF::R_RX600_SUB32;
+  case FK_Data_Sub_8:
+    return ELF::R_RX600_SUB64;
+  case RX600::fixup_RX600_hi20:
+    return ELF::R_RX600_HI20;
+  case RX600::fixup_RX600_lo12_i:
+    return ELF::R_RX600_LO12_I;
+  case RX600::fixup_RX600_lo12_s:
+    return ELF::R_RX600_LO12_S;
+  case RX600::fixup_RX600_pcrel_hi20:
+    return ELF::R_RX600_PCREL_HI20;
+  case RX600::fixup_RX600_pcrel_lo12_i:
+    return ELF::R_RX600_PCREL_LO12_I;
+  case RX600::fixup_RX600_pcrel_lo12_s:
+    return ELF::R_RX600_PCREL_LO12_S;
+  case RX600::fixup_RX600_jal:
+    return ELF::R_RX600_JAL;
+  case RX600::fixup_RX600_branch:
+    return ELF::R_RX600_BRANCH;
+  case RX600::fixup_RX600_rvc_jump:
+    return ELF::R_RX600_RVC_JUMP;
+  case RX600::fixup_RX600_rvc_branch:
+    return ELF::R_RX600_RVC_BRANCH;
+  case RX600::fixup_RX600_call:
+    return ELF::R_RX600_CALL;
+  case RX600::fixup_RX600_relax:
+    return ELF::R_RX600_RELAX;
   }
-
-  return Type;
 }
 
-MCObjectWriter *llvm::createRX600ELFObjectWriter(raw_ostream &OS,
-                                                  uint8_t OSABI) {
-  MCELFObjectTargetWriter *MOTW = new RX600ELFObjectWriter(OSABI);
-  return createELFObjectWriter(MOTW, OS, /*isLittleEndian*/ true);
+std::unique_ptr<MCObjectTargetWriter>
+llvm::createRX600ELFObjectWriter(uint8_t OSABI, bool Is64Bit) {
+  return llvm::make_unique<RX600ELFObjectWriter>(OSABI, Is64Bit);
 }

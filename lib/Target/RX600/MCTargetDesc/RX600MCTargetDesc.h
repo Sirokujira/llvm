@@ -1,4 +1,4 @@
-//===-- RX600MCTargetDesc.h - RX600 Target Descriptions -----------*- C++ -*-===//
+//===-- RX600MCTargetDesc.h - RX600 Target Descriptions ---------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -11,43 +11,47 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SAMPLEMCTARGETDESC_H
-#define SAMPLEMCTARGETDESC_H
+#ifndef LLVM_LIB_TARGET_RX600_MCTARGETDESC_RX600MCTARGETDESC_H
+#define LLVM_LIB_TARGET_RX600_MCTARGETDESC_RX600MCTARGETDESC_H
 
+#include "llvm/Config/config.h"
+#include "llvm/MC/MCTargetOptions.h"
 #include "llvm/Support/DataTypes.h"
-#include "llvm/Support/Debug.h"
+#include <memory>
 
 namespace llvm {
 class MCAsmBackend;
 class MCCodeEmitter;
 class MCContext;
 class MCInstrInfo;
-class MCObjectWriter;
+class MCObjectTargetWriter;
 class MCRegisterInfo;
 class MCSubtargetInfo;
 class StringRef;
 class Target;
+class Triple;
 class raw_ostream;
+class raw_pwrite_stream;
 
-extern Target TheRX600Target;
+Target &getTheRX600Target();
 
 MCCodeEmitter *createRX600MCCodeEmitter(const MCInstrInfo &MCII,
-                                         const MCRegisterInfo &MRI,
-                                         const MCSubtargetInfo &STI,
-                                         MCContext &Ctx);
+                                        const MCRegisterInfo &MRI,
+                                        MCContext &Ctx);
 
-MCAsmBackend *createRX600AsmBackend(const Target &T, StringRef TT, StringRef CPU);
+MCAsmBackend *createRX600AsmBackend(const Target &T, const MCSubtargetInfo &STI,
+                                    const MCRegisterInfo &MRI,
+                                    const MCTargetOptions &Options);
 
-MCObjectWriter *createRX600ELFObjectWriter(raw_ostream &OS,
-                                            uint8_t OSABI);
-} // End llvm namespace
+std::unique_ptr<MCObjectTargetWriter> createRX600ELFObjectWriter(uint8_t OSABI,
+                                                                 bool Is64Bit);
+}
 
-// Defines symbolic names for RX600 registers.  This defines a mapping from
-// register name to register number.
+// Defines symbolic names for RX600 registers.
 #define GET_REGINFO_ENUM
 #include "RX600GenRegisterInfo.inc"
 
-// Defines symbolic names for the RX600 instructions.
+// Defines symbolic names for RX600 instructions.
 #define GET_INSTRINFO_ENUM
 #include "RX600GenInstrInfo.inc"
 

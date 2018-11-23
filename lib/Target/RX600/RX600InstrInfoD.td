@@ -144,7 +144,7 @@ def FCVT_D_WU : FPUnaryOp_r<0b1101001, 0b000, FPR64, GPR, "fcvt.d.wu"> {
 }
 } // Predicates = [HasStdExtD]
 
-let Predicates = [HasStdExtD, IsRV64] in {
+let Predicates = [HasStdExtD, IsRX600] in {
 def FCVT_L_D : FPUnaryOp_r_frm<0b1100001, GPR, FPR64, "fcvt.l.d"> {
   let rs2 = 0b00010;
 }
@@ -172,7 +172,7 @@ def           : FPUnaryOpDynFrmAlias<FCVT_D_LU, "fcvt.d.lu", FPR64, GPR>;
 def FMV_D_X : FPUnaryOp_r<0b1111001, 0b000, FPR64, GPR, "fmv.d.x"> {
   let rs2 = 0b00000;
 }
-} // Predicates = [HasStdExtD, IsRV64]
+} // Predicates = [HasStdExtD, IsRX600]
 
 //===----------------------------------------------------------------------===//
 // Assembler Pseudo Instructions (User-Level ISA, Version 2.2, Chapter 20)
@@ -272,7 +272,7 @@ defm : LdPat<load, FLD>;
 
 defm : StPat<store, FSD, FPR64>;
 
-/// Pseudo-instructions needed for the soft-float ABI with RV32D
+/// Pseudo-instructions needed for the soft-float ABI with RX600
 
 // Moves two GPRs to an FPR.
 let usesCustomInserter = 1 in

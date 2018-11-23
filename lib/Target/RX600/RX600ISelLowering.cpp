@@ -194,7 +194,7 @@ bool RX600TargetLowering::isLegalAddImmediate(int64_t Imm) const {
   return isInt<12>(Imm);
 }
 
-// On RV32, 64-bit integers are split into their high and low parts and held
+// On RX600, 64-bit integers are split into their high and low parts and held
 // in two different registers, so the trunc is free since the low register can
 // just be used.
 bool RX600TargetLowering::isTruncateFree(Type *SrcTy, Type *DstTy) const {
@@ -691,7 +691,7 @@ static bool CC_RX600(const DataLayout &DL, unsigned ValNo, MVT ValVT, MVT LocVT,
 
   // If this is a variadic argument, the RISC-V calling convention requires
   // that it is assigned an 'even' or 'aligned' register if it has 8-byte
-  // alignment (RV32) or 16-byte alignment (RV64). An aligned register should
+  // alignment (RX600) or 16-byte alignment (RX600). An aligned register should
   // be used regardless of whether the original argument was split during
   // legalisation or not. The argument will not be passed by registers if the
   // original type is larger than 2*XLEN, so the register alignment rule does
@@ -712,7 +712,7 @@ static bool CC_RX600(const DataLayout &DL, unsigned ValNo, MVT ValVT, MVT LocVT,
   assert(PendingLocs.size() == PendingArgFlags.size() &&
          "PendingLocs and PendingArgFlags out of sync");
 
-  // Handle passing f64 on RV32D with a soft float ABI.
+  // Handle passing f64 on RX600D with a soft float ABI.
   if (XLen == 32 && ValVT == MVT::f64) {
     assert(!ArgFlags.isSplit() && PendingLocs.empty() &&
            "Can't lower f64 if it is split");
@@ -895,7 +895,7 @@ static SDValue unpackFromMemLoc(SelectionDAG &DAG, SDValue Chain,
   return Val;
 }
 
-static SDValue unpackF64OnRV32DSoftABI(SelectionDAG &DAG, SDValue Chain,
+static SDValue unpackF64OnRX600DSoftABI(SelectionDAG &DAG, SDValue Chain,
                                        const CCValAssign &VA, const SDLoc &DL) {
   assert(VA.getLocVT() == MVT::i32 && VA.getValVT() == MVT::f64 &&
          "Unexpected VA");
@@ -977,10 +977,10 @@ SDValue RX600TargetLowering::LowerFormalArguments(
     CCValAssign &VA = ArgLocs[i];
     assert(VA.getLocVT() == XLenVT && "Unhandled argument type");
     SDValue ArgValue;
-    // Passing f64 on RV32D with a soft float ABI must be handled as a special
+    // Passing f64 on RX600D with a soft float ABI must be handled as a special
     // case.
     if (VA.getLocVT() == MVT::i32 && VA.getValVT() == MVT::f64)
-      ArgValue = unpackF64OnRV32DSoftABI(DAG, Chain, VA, DL);
+      ArgValue = unpackF64OnRX600DSoftABI(DAG, Chain, VA, DL);
     else if (VA.isRegLoc())
       ArgValue = unpackFromRegLoc(DAG, Chain, VA, DL);
     else
@@ -988,7 +988,7 @@ SDValue RX600TargetLowering::LowerFormalArguments(
 
     if (VA.getLocInfo() == CCValAssign::Indirect) {
       // If the original argument was split and passed by reference (e.g. i128
-      // on RV32), we need to load all parts of it here (using the same
+      // on RX600), we need to load all parts of it here (using the same
       // address).
       InVals.push_back(DAG.getLoad(VA.getValVT(), DL, Chain, ArgValue,
                                    MachinePointerInfo()));
@@ -1229,10 +1229,10 @@ SDValue RX600TargetLowering::LowerCall(CallLoweringInfo &CLI,
     SDValue ArgValue = OutVals[i];
     ISD::ArgFlagsTy Flags = Outs[i].Flags;
 
-    // Handle passing f64 on RV32D with a soft float ABI as a special case.
-    bool IsF64OnRV32DSoftABI =
+    // Handle passing f64 on RX600D with a soft float ABI as a special case.
+    bool IsF64OnRX600DSoftABI =
         VA.getLocVT() == MVT::i32 && VA.getValVT() == MVT::f64;
-    if (IsF64OnRV32DSoftABI && VA.isRegLoc()) {
+    if (IsF64OnRX600DSoftABI && VA.isRegLoc()) {
       SDValue SplitF64 = DAG.getNode(
           RX600ISD::SplitF64, DL, DAG.getVTList(MVT::i32, MVT::i32), ArgValue);
       SDValue Lo = SplitF64.getValue(0);
@@ -1257,7 +1257,7 @@ SDValue RX600TargetLowering::LowerCall(CallLoweringInfo &CLI,
       continue;
     }
 
-    // IsF64OnRV32DSoftABI && VA.isMemLoc() is handled below in the same way
+    // IsF64OnRX600DSoftABI && VA.isMemLoc() is handled below in the same way
     // as any other MemLoc.
 
     // Promote the value if needed.
@@ -1478,7 +1478,7 @@ RX600TargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
     assert(VA.isRegLoc() && "Can only return in registers!");
 
     if (VA.getLocVT() == MVT::i32 && VA.getValVT() == MVT::f64) {
-      // Handle returning f64 on RV32D with a soft float ABI.
+      // Handle returning f64 on RX600D with a soft float ABI.
       assert(VA.isRegLoc() && "Expected return via registers");
       SDValue SplitF64 = DAG.getNode(RX600ISD::SplitF64, DL,
                                      DAG.getVTList(MVT::i32, MVT::i32), Val);

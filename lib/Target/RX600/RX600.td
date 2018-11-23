@@ -46,14 +46,11 @@ def HasStdExtC : Predicate<"Subtarget->hasStdExtC()">,
 
 
 def Feature64Bit
-    : SubtargetFeature<"64bit", "HasRV64", "true", "Implements RV64">;
-def IsRV64 : Predicate<"Subtarget->is64Bit()">,
-                       AssemblerPredicate<"Feature64Bit">;
-def IsRV32 : Predicate<"!Subtarget->is64Bit()">,
+    : SubtargetFeature<"64bit", "HasRX600", "true", "Implements RX600">;
+def IsRX600 : Predicate<"!Subtarget->is64Bit()">,
                        AssemblerPredicate<"!Feature64Bit">;
 
-def RV64           : HwMode<"+64bit">;
-def RV32           : HwMode<"-64bit">;
+def RX600           : HwMode<"-64bit">;
 
 def FeatureRelax
     : SubtargetFeature<"relax", "EnableLinkerRelax", "true",

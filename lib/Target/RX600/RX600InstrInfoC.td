@@ -259,12 +259,12 @@ class Shift_right<bits<2> funct2, string OpcodeStr, RegisterClass cls,
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class CS_ALU<bits<2> funct2, string OpcodeStr, RegisterClass cls,
-             bit RV64only>
+             bit RX600only>
     : RVInst16CS<0b100, 0b01, (outs cls:$rd_wb), (ins cls:$rd, cls:$rs2),
                  OpcodeStr, "$rd, $rs2"> {
   bits<3> rd;
   let Constraints = "$rd = $rd_wb";
-  let Inst{12} = RV64only;
+  let Inst{12} = RX600only;
   let Inst{11-10} = 0b11;
   let Inst{9-7} = rd;
   let Inst{6-5} = funct2;
@@ -301,8 +301,8 @@ def C_LW : CLoad_ri<0b010, "c.lw", GPRC, uimm7_lsb00> {
   let Inst{5} = imm{6};
 }
 
-let DecoderNamespace = "RX60032Only_",
-    Predicates = [HasStdExtC, HasStdExtF, IsRV32] in
+let DecoderNamespace = "RX600Only_",
+    Predicates = [HasStdExtC, HasStdExtF, IsRX600] in
 def C_FLW  : CLoad_ri<0b011, "c.flw", FPR32C, uimm7_lsb00> {
   bits<7> imm;
   let Inst{12-10} = imm{5-3};
@@ -310,7 +310,7 @@ def C_FLW  : CLoad_ri<0b011, "c.flw", FPR32C, uimm7_lsb00> {
   let Inst{5} = imm{6};
 }
 
-let Predicates = [HasStdExtC, IsRV64] in
+let Predicates = [HasStdExtC, IsRX600] in
 def C_LD : CLoad_ri<0b011, "c.ld", GPRC, uimm8_lsb000> {
   bits<8> imm;
   let Inst{12-10} = imm{5-3};
@@ -331,8 +331,8 @@ def C_SW : CStore_rri<0b110, "c.sw", GPRC, uimm7_lsb00> {
   let Inst{5} = imm{6};
 }
 
-let DecoderNamespace = "RX60032Only_",
-    Predicates = [HasStdExtC, HasStdExtF, IsRV32]  in
+let DecoderNamespace = "RX600Only_",
+    Predicates = [HasStdExtC, HasStdExtF, IsRX600]  in
 def C_FSW  : CStore_rri<0b111, "c.fsw", FPR32C, uimm7_lsb00> {
   bits<7> imm;
   let Inst{12-10} = imm{5-3};
@@ -340,7 +340,7 @@ def C_FSW  : CStore_rri<0b111, "c.fsw", FPR32C, uimm7_lsb00> {
   let Inst{5} = imm{6};
 }
 
-let Predicates = [HasStdExtC, IsRV64] in
+let Predicates = [HasStdExtC, IsRX600] in
 def C_SD : CStore_rri<0b111, "c.sd", GPRC, uimm8_lsb000> {
   bits<8> imm;
   let Inst{12-10} = imm{5-3};
@@ -359,13 +359,13 @@ def C_ADDI : RVInst16CI<0b000, 0b01, (outs GPRNoX0:$rd_wb),
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0, isCall = 1,
-    DecoderNamespace = "RX60032Only_", Defs = [X1],
-    Predicates = [HasStdExtC, IsRV32]  in
+    DecoderNamespace = "RX600Only_", Defs = [X1],
+    Predicates = [HasStdExtC, IsRX600]  in
 def C_JAL : RVInst16CJ<0b001, 0b01, (outs), (ins simm12_lsb0:$offset),
                        "c.jal", "$offset">;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0,
-    Predicates = [HasStdExtC, IsRV64] in
+    Predicates = [HasStdExtC, IsRX600] in
 def C_ADDIW : RVInst16CI<0b001, 0b01, (outs GPRNoX0:$rd_wb),
                          (ins GPRNoX0:$rd, simm6:$imm),
                          "c.addiw", "$rd, $imm"> {
@@ -416,7 +416,7 @@ def C_XOR  : CS_ALU<0b01, "c.xor", GPRC, 0>;
 def C_OR   : CS_ALU<0b10, "c.or" , GPRC, 0>;
 def C_AND  : CS_ALU<0b11, "c.and", GPRC, 0>;
 
-let Predicates = [HasStdExtC, IsRV64] in {
+let Predicates = [HasStdExtC, IsRX600] in {
 def C_SUBW : CS_ALU<0b00, "c.subw", GPRC, 1>;
 def C_ADDW : CS_ALU<0b01, "c.addw", GPRC, 1>;
 }
@@ -451,14 +451,14 @@ def C_LWSP : CStackLoad<0b010, "c.lwsp", GPRNoX0, uimm8_lsb00> {
   let Inst{3-2} = imm{7-6};
 }
 
-let DecoderNamespace = "RX60032Only_",
-    Predicates = [HasStdExtC, HasStdExtF, IsRV32] in
+let DecoderNamespace = "RX600Only_",
+    Predicates = [HasStdExtC, HasStdExtF, IsRX600] in
 def C_FLWSP  : CStackLoad<0b011, "c.flwsp", FPR32, uimm8_lsb00> {
   let Inst{6-4} = imm{4-2};
   let Inst{3-2} = imm{7-6};
 }
 
-let Predicates = [HasStdExtC, IsRV64] in
+let Predicates = [HasStdExtC, IsRX600] in
 def C_LDSP : CStackLoad<0b011, "c.ldsp", GPRNoX0, uimm9_lsb000> {
   let Inst{6-5} = imm{4-3};
   let Inst{4-2} = imm{8-6};
@@ -504,14 +504,14 @@ def C_SWSP : CStackStore<0b110, "c.swsp", GPR, uimm8_lsb00> {
   let Inst{8-7}  = imm{7-6};
 }
 
-let DecoderNamespace = "RX60032Only_",
-    Predicates = [HasStdExtC, HasStdExtF, IsRV32] in
+let DecoderNamespace = "RX600Only_",
+    Predicates = [HasStdExtC, HasStdExtF, IsRX600] in
 def C_FSWSP  : CStackStore<0b111, "c.fswsp", FPR32, uimm8_lsb00> {
   let Inst{12-9} = imm{5-2};
   let Inst{8-7}  = imm{7-6};
 }
 
-let Predicates = [HasStdExtC, IsRV64] in
+let Predicates = [HasStdExtC, IsRX600] in
 def C_SDSP : CStackStore<0b111, "c.sdsp", GPR, uimm9_lsb000> {
   let Inst{12-10} = imm{5-3};
   let Inst{9-7}   = imm{8-6};
@@ -548,15 +548,15 @@ def : CompressPat<(LW GPRC:$rd, GPRC:$rs1, uimm7_lsb00:$imm),
                   (C_LW GPRC:$rd, GPRC:$rs1, uimm7_lsb00:$imm)>;
 } // Predicates = [HasStdExtC]
 
-let Predicates = [HasStdExtC, HasStdExtF, IsRV32] in {
+let Predicates = [HasStdExtC, HasStdExtF, IsRX600] in {
 def : CompressPat<(FLW FPR32C:$rd, GPRC:$rs1, uimm7_lsb00:$imm),
                   (C_FLW FPR32C:$rd, GPRC:$rs1, uimm7_lsb00:$imm)>;
-} // Predicates = [HasStdExtC, HasStdExtF, IsRV32]
+} // Predicates = [HasStdExtC, HasStdExtF, IsRX600]
 
-let Predicates = [HasStdExtC, IsRV64] in {
+let Predicates = [HasStdExtC, IsRX600] in {
 def : CompressPat<(LD GPRC:$rd, GPRC:$rs1, uimm8_lsb000:$imm),
                   (C_LD GPRC:$rd, GPRC:$rs1, uimm8_lsb000:$imm)>;
-} // Predicates = [HasStdExtC, IsRV64]
+} // Predicates = [HasStdExtC, IsRX600]
 
 let Predicates = [HasStdExtC, HasStdExtD] in {
 def : CompressPat<(FSD FPR64C:$rs2, GPRC:$rs1, uimm8_lsb000:$imm),
@@ -568,15 +568,15 @@ def : CompressPat<(SW GPRC:$rs2, GPRC:$rs1, uimm7_lsb00:$imm),
                   (C_SW GPRC:$rs2, GPRC:$rs1, uimm7_lsb00:$imm)>;
 } // Predicates = [HasStdExtC]
 
-let Predicates = [HasStdExtC, HasStdExtF, IsRV32] in {
+let Predicates = [HasStdExtC, HasStdExtF, IsRX600] in {
 def : CompressPat<(FSW FPR32C:$rs2, GPRC:$rs1,uimm7_lsb00:$imm),
                   (C_FSW FPR32C:$rs2, GPRC:$rs1, uimm7_lsb00:$imm)>;
-} // Predicate = [HasStdExtC, HasStdExtF, IsRV32]
+} // Predicate = [HasStdExtC, HasStdExtF, IsRX600]
 
-let Predicates = [HasStdExtC, IsRV64] in {
+let Predicates = [HasStdExtC, IsRX600] in {
 def : CompressPat<(SD GPRC:$rs2, GPRC:$rs1, uimm8_lsb000:$imm),
                   (C_SD GPRC:$rs2, GPRC:$rs1, uimm8_lsb000:$imm)>;
-} // Predicates = [HasStdExtC, IsRV64]
+} // Predicates = [HasStdExtC, IsRX600]
 
 // Quadrant 1
 let Predicates = [HasStdExtC] in {
@@ -585,15 +585,15 @@ def : CompressPat<(ADDI GPRNoX0:$rs1, GPRNoX0:$rs1, simm6nonzero:$imm),
                   (C_ADDI GPRNoX0:$rs1, simm6nonzero:$imm)>;
 } // Predicates = [HasStdExtC]
 
-let Predicates = [HasStdExtC, IsRV32] in {
+let Predicates = [HasStdExtC, IsRX600] in {
 def : CompressPat<(JAL X1, simm12_lsb0:$offset),
                   (C_JAL simm12_lsb0:$offset)>;
-} // Predicates = [HasStdExtC, IsRV32]
+} // Predicates = [HasStdExtC, IsRX600]
 
-let Predicates = [HasStdExtC, IsRV64] in {
+let Predicates = [HasStdExtC, IsRX600] in {
 def : CompressPat<(ADDIW GPRNoX0:$rs1, GPRNoX0:$rs1, simm6:$imm),
                   (C_ADDIW GPRNoX0:$rs1, simm6:$imm)>;
-} // Predicates = [HasStdExtC, IsRV64]
+} // Predicates = [HasStdExtC, IsRX600]
 
 let Predicates = [HasStdExtC] in {
 def : CompressPat<(ADDI GPRNoX0:$rd, X0, simm6:$imm),
@@ -624,14 +624,14 @@ def : CompressPat<(AND GPRC:$rs1, GPRC:$rs2, GPRC:$rs1),
                   (C_AND GPRC:$rs1, GPRC:$rs2)>;
 } //  Predicates = [HasStdExtC]
 
-let Predicates = [HasStdExtC, IsRV64] in {
+let Predicates = [HasStdExtC, IsRX600] in {
 def : CompressPat<(SUBW GPRC:$rs1, GPRC:$rs1, GPRC:$rs2),
                   (C_SUBW GPRC:$rs1, GPRC:$rs2)>;
 def : CompressPat<(ADDW GPRC:$rs1, GPRC:$rs1, GPRC:$rs2),
                    (C_ADDW GPRC:$rs1, GPRC:$rs2)>;
 def : CompressPat<(ADDW GPRC:$rs1, GPRC:$rs2, GPRC:$rs1),
                    (C_ADDW GPRC:$rs1, GPRC:$rs2)>;
-} // Predicates = [HasStdExtC, IsRV64]
+} // Predicates = [HasStdExtC, IsRX600]
 
 let Predicates = [HasStdExtC] in {
 def : CompressPat<(JAL X0, simm12_lsb0:$offset),
@@ -658,15 +658,15 @@ def : CompressPat<(LW GPRNoX0:$rd, SP:$rs1,  uimm8_lsb00:$imm),
                   (C_LWSP GPRNoX0:$rd, SP:$rs1, uimm8_lsb00:$imm)>;
 } // Predicates = [HasStdExtC]
 
-let Predicates = [HasStdExtC, HasStdExtF, IsRV32] in {
+let Predicates = [HasStdExtC, HasStdExtF, IsRX600] in {
 def : CompressPat<(FLW FPR32:$rd, SP:$rs1, uimm8_lsb00:$imm),
                   (C_FLWSP FPR32:$rd, SP:$rs1, uimm8_lsb00:$imm)>;
-} // Predicates = [HasStdExtC, HasStdExtF, IsRV32]
+} // Predicates = [HasStdExtC, HasStdExtF, IsRX600]
 
-let Predicates = [HasStdExtC, IsRV64] in {
+let Predicates = [HasStdExtC, IsRX600] in {
 def : CompressPat<(LD GPRNoX0:$rd, SP:$rs1, uimm9_lsb000:$imm),
                   (C_LDSP GPRNoX0:$rd, SP:$rs1, uimm9_lsb000:$imm)>;
-} // Predicates = [HasStdExtC, IsRV64]
+} // Predicates = [HasStdExtC, IsRX600]
 
 let Predicates = [HasStdExtC] in {
 def : CompressPat<(JALR X0, GPRNoX0:$rs1, 0),
@@ -696,12 +696,12 @@ def : CompressPat<(SW GPR:$rs2, SP:$rs1, uimm8_lsb00:$imm),
                   (C_SWSP GPR:$rs2, SP:$rs1, uimm8_lsb00:$imm)>;
 } // Predicates = [HasStdExtC]
 
-let Predicates = [HasStdExtC, HasStdExtF, IsRV32] in {
+let Predicates = [HasStdExtC, HasStdExtF, IsRX600] in {
 def : CompressPat<(FSW FPR32:$rs2, SP:$rs1, uimm8_lsb00:$imm),
                   (C_FSWSP FPR32:$rs2, SP:$rs1, uimm8_lsb00:$imm)>;
-} // Predicates = [HasStdExtC, HasStdExtF, IsRV32]
+} // Predicates = [HasStdExtC, HasStdExtF, IsRX600]
 
-let Predicates = [HasStdExtC, IsRV64] in {
+let Predicates = [HasStdExtC, IsRX600] in {
 def : CompressPat<(SD GPR:$rs2, SP:$rs1, uimm9_lsb000:$imm),
                   (C_SDSP GPR:$rs2, SP:$rs1, uimm9_lsb000:$imm)>;
-} //  Predicates = [HasStdExtC, IsRV64]
+} //  Predicates = [HasStdExtC, IsRX600]

@@ -133,6 +133,5 @@ bool RX600AsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
 
 // Force static initialization.
 extern "C" void LLVMInitializeRX600AsmPrinter() {
-  RegisterAsmPrinter<RX600AsmPrinter> X(getTheRX60032Target());
-  RegisterAsmPrinter<RX600AsmPrinter> Y(getTheRX60064Target());
+  RegisterAsmPrinter<RX600AsmPrinter> X(getTheRX600Target());
 }

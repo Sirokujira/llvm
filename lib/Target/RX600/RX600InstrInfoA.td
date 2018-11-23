@@ -73,7 +73,7 @@ defm AMOMINU_W  : AMO_rr_aq_rl<0b11000, 0b010, "amominu.w">;
 defm AMOMAXU_W  : AMO_rr_aq_rl<0b11100, 0b010, "amomaxu.w">;
 } // Predicates = [HasStdExtA]
 
-let Predicates = [HasStdExtA, IsRV64] in {
+let Predicates = [HasStdExtA, IsRX600] in {
 defm LR_D       : LR_r_aq_rl<0b011, "lr.d">;
 defm SC_D       : AMO_rr_aq_rl<0b00011, 0b011, "sc.d">;
 defm AMOSWAP_D  : AMO_rr_aq_rl<0b00001, 0b011, "amoswap.d">;
@@ -85,7 +85,7 @@ defm AMOMIN_D   : AMO_rr_aq_rl<0b10000, 0b011, "amomin.d">;
 defm AMOMAX_D   : AMO_rr_aq_rl<0b10100, 0b011, "amomax.d">;
 defm AMOMINU_D  : AMO_rr_aq_rl<0b11000, 0b011, "amominu.d">;
 defm AMOMAXU_D  : AMO_rr_aq_rl<0b11100, 0b011, "amomaxu.d">;
-} // Predicates = [HasStedExtA, IsRV64]
+} // Predicates = [HasStedExtA, IsRX600]
 
 //===----------------------------------------------------------------------===//
 // Pseudo-instructions and codegen patterns

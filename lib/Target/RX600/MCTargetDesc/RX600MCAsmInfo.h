@@ -1,8 +1,8 @@
-//===-- RX600MCAsmInfo.h - RX600 asm properties --------------*- C++ -*--===//
+//===-- RX600MCAsmInfo.h - RX600 Asm Info ----------------------*- C++ -*--===//
 //
 //                     The LLVM Compiler Infrastructure
 //
-// This file is distributed under the University of Illinois Open Source 
+// This file is distributed under the Company of Renesas
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
@@ -11,20 +11,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SAMPLE_TARGETASMINFO_H
-#define SAMPLE_TARGETASMINFO_H
+#ifndef LLVM_LIB_TARGET_RX600_MCTARGETDESC_RX600MCASMINFO_H
+#define LLVM_LIB_TARGET_RX600_MCTARGETDESC_RX600MCASMINFO_H
 
-#include "llvm/MC/MCAsmInfo.h"
+#include "llvm/MC/MCAsmInfoELF.h"
 
 namespace llvm {
-  class StringRef;
-  class Target;
+class Triple;
 
-  class RX600MCAsmInfo : public MCAsmInfo {
-    virtual void anchor() {};
-  public:
-    explicit RX600MCAsmInfo(const Target &T, StringRef TT);
-  };
+class RX600MCAsmInfo : public MCAsmInfoELF {
+  void anchor() override;
+
+public:
+  explicit RX600MCAsmInfo(const Triple &TargetTriple);
+};
 
 } // namespace llvm
 

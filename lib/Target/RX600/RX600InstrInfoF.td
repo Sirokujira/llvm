@@ -166,7 +166,7 @@ def FMV_W_X : FPUnaryOp_r<0b1111000, 0b000, FPR32, GPR, "fmv.w.x"> {
 }
 } // Predicates = [HasStdExtF]
 
-let Predicates = [HasStdExtF, IsRV64] in {
+let Predicates = [HasStdExtF, IsRX600] in {
 def FCVT_L_S  : FPUnaryOp_r_frm<0b1100000, GPR, FPR32, "fcvt.l.s"> {
   let rs2 = 0b00010;
 }
@@ -186,7 +186,7 @@ def FCVT_S_LU : FPUnaryOp_r_frm<0b1101000, FPR32, GPR, "fcvt.s.lu"> {
   let rs2 = 0b00011;
 }
 def           : FPUnaryOpDynFrmAlias<FCVT_S_LU, "fcvt.s.lu", FPR32, GPR>;
-} // Predicates = [HasStdExtF, IsRV64]
+} // Predicates = [HasStdExtF, IsRX600]
 
 //===----------------------------------------------------------------------===//
 // Assembler Pseudo Instructions (User-Level ISA, Version 2.2, Chapter 20)

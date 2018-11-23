@@ -40,7 +40,7 @@ struct RX600Operand;
 
 class RX600AsmParser : public MCTargetAsmParser {
   SMLoc getLoc() const { return getParser().getTok().getLoc(); }
-  bool isRV64() const { return getSTI().hasFeature(RX600::Feature64Bit); }
+  bool isRX600() const { return getSTI().hasFeature(RX600::Feature64Bit); }
 
   RX600TargetStreamer &getTargetStreamer() {
     MCTargetStreamer &TS = *getParser().getStreamer().getTargetStreamer();
@@ -144,7 +144,7 @@ struct RX600Operand : public MCParsedAsmOperand {
     Immediate,
   } Kind;
 
-  bool IsRV64;
+  bool IsRX600;
 
   struct RegOp {
     unsigned RegNum;
@@ -166,7 +166,7 @@ struct RX600Operand : public MCParsedAsmOperand {
 public:
   RX600Operand(const RX600Operand &o) : MCParsedAsmOperand() {
     Kind = o.Kind;
-    IsRV64 = o.IsRV64;
+    IsRX600 = o.IsRX600;
     StartLoc = o.StartLoc;
     EndLoc = o.EndLoc;
     switch (Kind) {
@@ -276,7 +276,7 @@ public:
     bool IsConstantImm = evaluateConstantImm(Imm, VK);
     // Given only Imm, ensuring that the actually specified constant is either
     // a signed or unsigned 64-bit number is unfortunately impossible.
-    bool IsInRange = isRV64() ? true : isInt<32>(Imm) || isUInt<32>(Imm);
+    bool IsInRange = isRX600() ? true : isInt<32>(Imm) || isUInt<32>(Imm);
     return IsConstantImm && IsInRange && VK == RX600MCExpr::VK_RX600_None;
   }
 
@@ -287,7 +287,7 @@ public:
       return false;
     if (!evaluateConstantImm(Imm, VK) || VK != RX600MCExpr::VK_RX600_None)
       return false;
-    return (isRV64() && isUInt<6>(Imm)) || isUInt<5>(Imm);
+    return (isRX600() && isUInt<6>(Imm)) || isUInt<5>(Imm);
   }
 
   bool isUImmLog2XLenNonZero() const {
@@ -299,7 +299,7 @@ public:
       return false;
     if (Imm == 0)
       return false;
-    return (isRV64() && isUInt<6>(Imm)) || isUInt<5>(Imm);
+    return (isRX600() && isUInt<6>(Imm)) || isUInt<5>(Imm);
   }
 
   bool isUImm5() const {
@@ -475,8 +475,8 @@ public:
   SMLoc getStartLoc() const override { return StartLoc; }
   /// getEndLoc - Gets location of the last token of this operand
   SMLoc getEndLoc() const override { return EndLoc; }
-  /// True if this operand is for an RV64 instruction
-  bool isRV64() const { return IsRV64; }
+  /// True if this operand is for an RX600 instruction
+  bool isRX600() const { return IsRX600; }
 
   unsigned getReg() const override {
     assert(Kind == Register && "Invalid type access!");
@@ -509,32 +509,32 @@ public:
   }
 
   static std::unique_ptr<RX600Operand> createToken(StringRef Str, SMLoc S,
-                                                   bool IsRV64) {
+                                                   bool IsRX600) {
     auto Op = make_unique<RX600Operand>(Token);
     Op->Tok = Str;
     Op->StartLoc = S;
     Op->EndLoc = S;
-    Op->IsRV64 = IsRV64;
+    Op->IsRX600 = IsRX600;
     return Op;
   }
 
   static std::unique_ptr<RX600Operand> createReg(unsigned RegNo, SMLoc S,
-                                                 SMLoc E, bool IsRV64) {
+                                                 SMLoc E, bool IsRX600) {
     auto Op = make_unique<RX600Operand>(Register);
     Op->Reg.RegNum = RegNo;
     Op->StartLoc = S;
     Op->EndLoc = E;
-    Op->IsRV64 = IsRV64;
+    Op->IsRX600 = IsRX600;
     return Op;
   }
 
   static std::unique_ptr<RX600Operand> createImm(const MCExpr *Val, SMLoc S,
-                                                 SMLoc E, bool IsRV64) {
+                                                 SMLoc E, bool IsRX600) {
     auto Op = make_unique<RX600Operand>(Immediate);
     Op->Imm.Val = Val;
     Op->StartLoc = S;
     Op->EndLoc = E;
-    Op->IsRV64 = IsRV64;
+    Op->IsRX600 = IsRX600;
     return Op;
   }
 
@@ -706,7 +706,7 @@ bool RX600AsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
     return Error(ErrorLoc, "invalid operand for instruction");
   }
   case Match_InvalidImmXLen:
-    if (isRV64()) {
+    if (isRX600()) {
       SMLoc ErrorLoc = ((RX600Operand &)*Operands[ErrorInfo]).getStartLoc();
       return Error(ErrorLoc, "operand must be a constant 64-bit integer");
     }
@@ -714,11 +714,11 @@ bool RX600AsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                       std::numeric_limits<int32_t>::min(),
                                       std::numeric_limits<uint32_t>::max());
   case Match_InvalidUImmLog2XLen:
-    if (isRV64())
+    if (isRX600())
       return generateImmOutOfRangeError(Operands, ErrorInfo, 0, (1 << 6) - 1);
     return generateImmOutOfRangeError(Operands, ErrorInfo, 0, (1 << 5) - 1);
   case Match_InvalidUImmLog2XLenNonZero:
-    if (isRV64())
+    if (isRX600())
       return generateImmOutOfRangeError(Operands, ErrorInfo, 1, (1 << 6) - 1);
     return generateImmOutOfRangeError(Operands, ErrorInfo, 1, (1 << 5) - 1);
   case Match_InvalidUImm5:
@@ -848,16 +848,16 @@ OperandMatchResultTy RX600AsmParser::parseRegister(OperandVector &Operands,
       }
     }
     if (HadParens)
-      Operands.push_back(RX600Operand::createToken("(", FirstS, isRV64()));
+      Operands.push_back(RX600Operand::createToken("(", FirstS, isRX600()));
     SMLoc S = getLoc();
     SMLoc E = SMLoc::getFromPointer(S.getPointer() - 1);
     getLexer().Lex();
-    Operands.push_back(RX600Operand::createReg(RegNo, S, E, isRV64()));
+    Operands.push_back(RX600Operand::createReg(RegNo, S, E, isRX600()));
   }
 
   if (HadParens) {
     getParser().Lex(); // Eat ')'
-    Operands.push_back(RX600Operand::createToken(")", getLoc(), isRV64()));
+    Operands.push_back(RX600Operand::createToken(")", getLoc(), isRX600()));
   }
 
   return MatchOperand_Success;
@@ -891,7 +891,7 @@ OperandMatchResultTy RX600AsmParser::parseImmediate(OperandVector &Operands) {
     return parseOperandWithModifier(Operands);
   }
 
-  Operands.push_back(RX600Operand::createImm(Res, S, E, isRV64()));
+  Operands.push_back(RX600Operand::createImm(Res, S, E, isRX600()));
   return MatchOperand_Success;
 }
 
@@ -931,7 +931,7 @@ RX600AsmParser::parseOperandWithModifier(OperandVector &Operands) {
   }
 
   const MCExpr *ModExpr = RX600MCExpr::create(SubExpr, VK, getContext());
-  Operands.push_back(RX600Operand::createImm(ModExpr, S, E, isRV64()));
+  Operands.push_back(RX600Operand::createImm(ModExpr, S, E, isRX600()));
   return MatchOperand_Success;
 }
 
@@ -943,7 +943,7 @@ RX600AsmParser::parseMemOpBaseReg(OperandVector &Operands) {
   }
 
   getParser().Lex(); // Eat '('
-  Operands.push_back(RX600Operand::createToken("(", getLoc(), isRV64()));
+  Operands.push_back(RX600Operand::createToken("(", getLoc(), isRX600()));
 
   if (parseRegister(Operands) != MatchOperand_Success) {
     Error(getLoc(), "expected register");
@@ -956,7 +956,7 @@ RX600AsmParser::parseMemOpBaseReg(OperandVector &Operands) {
   }
 
   getParser().Lex(); // Eat ')'
-  Operands.push_back(RX600Operand::createToken(")", getLoc(), isRV64()));
+  Operands.push_back(RX600Operand::createToken(")", getLoc(), isRX600()));
 
   return MatchOperand_Success;
 }
@@ -1009,7 +1009,7 @@ bool RX600AsmParser::ParseInstruction(ParseInstructionInfo &Info,
                                       StringRef Name, SMLoc NameLoc,
                                       OperandVector &Operands) {
   // First operand is token for instruction
-  Operands.push_back(RX600Operand::createToken(Name, NameLoc, isRV64()));
+  Operands.push_back(RX600Operand::createToken(Name, NameLoc, isRX600()));
 
   // If there are no more operands, then finish
   if (getLexer().is(AsmToken::EndOfStatement))
@@ -1265,10 +1265,10 @@ bool RX600AsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
   if (Inst.getOpcode() == RX600::PseudoLI) {
     auto Reg = Inst.getOperand(0).getReg();
     int64_t Imm = Inst.getOperand(1).getImm();
-    // On RV32 the immediate here can either be a signed or an unsigned
+    // On RX600 the immediate here can either be a signed or an unsigned
     // 32-bit number. Sign extension has to be performed to ensure that Imm
     // represents the expected signed 64-bit number.
-    if (!isRV64())
+    if (!isRX600())
       Imm = SignExtend64<32>(Imm);
     emitLoadImm(Reg, Imm, Out);
     return false;
@@ -1282,6 +1282,5 @@ bool RX600AsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
 }
 
 extern "C" void LLVMInitializeRX600AsmParser() {
-  RegisterMCAsmParser<RX600AsmParser> X(getTheRX60032Target());
-  RegisterMCAsmParser<RX600AsmParser> Y(getTheRX60064Target());
+  RegisterMCAsmParser<RX600AsmParser> X(getTheRX600Target());
 }
