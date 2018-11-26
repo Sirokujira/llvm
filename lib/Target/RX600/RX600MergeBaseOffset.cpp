@@ -33,7 +33,7 @@
 #include <set>
 using namespace llvm;
 
-#define DEBUG_TYPE "riscv-merge-base-offset"
+#define DEBUG_TYPE "rx600-merge-base-offset"
 #define RX600_MERGE_BASE_OFFSET_NAME "RX600 Merge Base Offset"
 namespace {
 
@@ -65,7 +65,7 @@ private:
 } // end anonymous namespace
 
 char RX600MergeBaseOffsetOpt::ID = 0;
-INITIALIZE_PASS(RX600MergeBaseOffsetOpt, "riscv-merge-base-offset",
+INITIALIZE_PASS(RX600MergeBaseOffsetOpt, "rx600-merge-base-offset",
                 RX600_MERGE_BASE_OFFSET_NAME, false, false)
 
 // Detect the pattern:

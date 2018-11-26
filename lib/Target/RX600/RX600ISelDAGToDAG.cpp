@@ -21,7 +21,7 @@
 #include "llvm/Support/raw_ostream.h"
 using namespace llvm;
 
-#define DEBUG_TYPE "riscv-isel"
+#define DEBUG_TYPE "rx600-isel"
 
 // RX600-specific code to select RX600 machine instructions for
 // SelectionDAG operations.

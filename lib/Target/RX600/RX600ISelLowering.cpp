@@ -35,7 +35,7 @@
 
 using namespace llvm;
 
-#define DEBUG_TYPE "riscv-lower"
+#define DEBUG_TYPE "rx600-lower"
 
 STATISTIC(NumTailCalls, "Number of tail calls");
 
@@ -369,7 +369,7 @@ SDValue RX600TargetLowering::lowerSELECT(SDValue Op, SelectionDAG &DAG) const {
   // lowered RX600ISD::SELECT_CC to take advantage of the integer
   // compare+branch instructions. i.e.:
   // (select (setcc lhs, rhs, cc), truev, falsev)
-  // -> (riscvisd::select_cc lhs, rhs, cc, truev, falsev)
+  // -> (rx600isd::select_cc lhs, rhs, cc, truev, falsev)
   if (Op.getSimpleValueType() == XLenVT && CondV.getOpcode() == ISD::SETCC &&
       CondV.getOperand(0).getSimpleValueType() == XLenVT) {
     SDValue LHS = CondV.getOperand(0);
@@ -387,7 +387,7 @@ SDValue RX600TargetLowering::lowerSELECT(SDValue Op, SelectionDAG &DAG) const {
 
   // Otherwise:
   // (select condv, truev, falsev)
-  // -> (riscvisd::select_cc condv, zero, setne, truev, falsev)
+  // -> (rx600isd::select_cc condv, zero, setne, truev, falsev)
   SDValue Zero = DAG.getConstant(0, DL, XLenVT);
   SDValue SetNE = DAG.getConstant(ISD::SETNE, DL, XLenVT);
 

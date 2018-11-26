@@ -24,7 +24,7 @@
 
 using namespace llvm;
 
-#define DEBUG_TYPE "RX600mcexpr"
+#define DEBUG_TYPE "rx600mcexpr"
 
 const RX600MCExpr *RX600MCExpr::create(const MCExpr *Expr, VariantKind Kind,
                                        MCContext &Ctx) {

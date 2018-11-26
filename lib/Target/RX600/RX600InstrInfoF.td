@@ -280,7 +280,7 @@ def : Pat<(fcopysign FPR32:$rs1, (fneg FPR32:$rs2)), (FSGNJN_S $rs1, $rs2)>;
 // behaviour (see https://bugs.llvm.org/show_bug.cgi?id=27363). However, the
 // draft 2.3 ISA spec changes the definition of fmin and fmax in a way that
 // matches LLVM's fminnum and fmaxnum
-// <https://github.com/riscv/riscv-isa-manual/commit/cd20cee7efd9bac7c5aa127ec3b451749d2b3cce>.
+// <https://github.com/rx600/rx600-isa-manual/commit/cd20cee7efd9bac7c5aa127ec3b451749d2b3cce>.
 def : PatFpr32Fpr32<fminnum, FMIN_S>;
 def : PatFpr32Fpr32<fmaxnum, FMAX_S>;
 

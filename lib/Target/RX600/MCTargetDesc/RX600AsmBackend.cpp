@@ -1,4 +1,4 @@
-//===-- RX600ASMBackend.cpp - RX600 Asm Backend  ----------------------------===//
+//===-- RX600AsmBackend.cpp - RX600 Assembler Backend ---------------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -80,18 +80,18 @@ public:
       // RX600FixupKinds.h.
       //
       // name                      offset bits  flags
-      { "fixup_RX600_hi20",         12,     20,  0 },
-      { "fixup_RX600_lo12_i",       20,     12,  0 },
-      { "fixup_RX600_lo12_s",        0,     32,  0 },
-      { "fixup_RX600_pcrel_hi20",   12,     20,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_RX600_pcrel_lo12_i", 20,     12,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_RX600_pcrel_lo12_s",  0,     32,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_RX600_jal",          12,     20,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_RX600_branch",        0,     32,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_RX600_rvc_jump",      2,     11,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_RX600_rvc_branch",    0,     16,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_RX600_call",          0,     64,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_RX600_relax",         0,      0,  0 }
+      { "fixup_rx600_hi20",         12,     20,  0 },
+      { "fixup_rx600_lo12_i",       20,     12,  0 },
+      { "fixup_rx600_lo12_s",        0,     32,  0 },
+      { "fixup_rx600_pcrel_hi20",   12,     20,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_rx600_pcrel_lo12_i", 20,     12,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_rx600_pcrel_lo12_s",  0,     32,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_rx600_jal",          12,     20,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_rx600_branch",        0,     32,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_rx600_rvc_jump",      2,     11,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_rx600_rvc_branch",    0,     16,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_rx600_call",          0,     64,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_rx600_relax",         0,      0,  0 }
     };
     static_assert((array_lengthof(Infos)) == RX600::NumTargetFixupKinds,
                   "Not all fixup kinds added to Infos array");
@@ -133,11 +133,11 @@ bool RX600AsmBackend::fixupNeedsRelaxationAdvanced(const MCFixup &Fixup,
   switch ((unsigned)Fixup.getKind()) {
   default:
     return false;
-  case RX600::fixup_RX600_rvc_branch:
+  case RX600::fixup_rx600_rvc_branch:
     // For compressed branch instructions the immediate must be
     // in the range [-256, 254].
     return Offset > 254 || Offset < -256;
-  case RX600::fixup_RX600_rvc_jump:
+  case RX600::fixup_rx600_rvc_jump:
     // For compressed jump instructions the immediate must be
     // in the range [-2048, 2046].
     return Offset > 2046 || Offset < -2048;
@@ -234,17 +234,17 @@ static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   case FK_Data_4:
   case FK_Data_8:
     return Value;
-  case RX600::fixup_RX600_lo12_i:
-  case RX600::fixup_RX600_pcrel_lo12_i:
+  case RX600::fixup_rx600_lo12_i:
+  case RX600::fixup_rx600_pcrel_lo12_i:
     return Value & 0xfff;
-  case RX600::fixup_RX600_lo12_s:
-  case RX600::fixup_RX600_pcrel_lo12_s:
+  case RX600::fixup_rx600_lo12_s:
+  case RX600::fixup_rx600_pcrel_lo12_s:
     return (((Value >> 5) & 0x7f) << 25) | ((Value & 0x1f) << 7);
-  case RX600::fixup_RX600_hi20:
-  case RX600::fixup_RX600_pcrel_hi20:
+  case RX600::fixup_rx600_hi20:
+  case RX600::fixup_rx600_pcrel_hi20:
     // Add 1 if bit 11 is 1, to compensate for low 12 bits being negative.
     return ((Value + 0x800) >> 12) & 0xfffff;
-  case RX600::fixup_RX600_jal: {
+  case RX600::fixup_rx600_jal: {
     if (!isInt<21>(Value))
       Ctx.reportError(Fixup.getLoc(), "fixup value out of range");
     if (Value & 0x1)
@@ -261,7 +261,7 @@ static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     Value = (Sbit << 19) | (Lo10 << 9) | (Mid1 << 8) | Hi8;
     return Value;
   }
-  case RX600::fixup_RX600_branch: {
+  case RX600::fixup_rx600_branch: {
     if (!isInt<13>(Value))
       Ctx.reportError(Fixup.getLoc(), "fixup value out of range");
     if (Value & 0x1)
@@ -279,7 +279,7 @@ static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     Value = (Sbit << 31) | (Mid6 << 25) | (Lo4 << 8) | (Hi1 << 7);
     return Value;
   }
-  case RX600::fixup_RX600_call: {
+  case RX600::fixup_rx600_call: {
     // Jalr will add UpperImm with the sign-extended 12-bit LowerImm,
     // we need to add 0x800ULL before extract upper bits to reflect the
     // effect of the sign extension.
@@ -287,7 +287,7 @@ static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     uint64_t LowerImm = Value & 0xfffULL;
     return UpperImm | ((LowerImm << 20) << 32);
   }
-  case RX600::fixup_RX600_rvc_jump: {
+  case RX600::fixup_rx600_rvc_jump: {
     // Need to produce offset[11|4|9:8|10|6|7|3:1|5] from the 11-bit Value.
     unsigned Bit11  = (Value >> 11) & 0x1;
     unsigned Bit4   = (Value >> 4) & 0x1;
@@ -301,7 +301,7 @@ static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
             (Bit6 << 5) | (Bit7 << 4) | (Bit3_1 << 1) | Bit5;
     return Value;
   }
-  case RX600::fixup_RX600_rvc_branch: {
+  case RX600::fixup_rx600_rvc_branch: {
     // Need to produce offset[8|4:3], [reg 3 bit], offset[7:6|2:1|5]
     unsigned Bit8   = (Value >> 8) & 0x1;
     unsigned Bit7_6 = (Value >> 6) & 0x3;

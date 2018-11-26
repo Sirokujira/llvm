@@ -204,7 +204,7 @@ unsigned RX600MCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
          "getImmOpValue expects only expressions or immediates");
   const MCExpr *Expr = MO.getExpr();
   MCExpr::ExprKind Kind = Expr->getKind();
-  RX600::Fixups FixupKind = RX600::fixup_RX600_invalid;
+  RX600::Fixups FixupKind = RX600::fixup_rx600_invalid;
   if (Kind == MCExpr::Target) {
     const RX600MCExpr *RVExpr = cast<RX600MCExpr>(Expr);
 
@@ -214,54 +214,54 @@ unsigned RX600MCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
       llvm_unreachable("Unhandled fixup kind!");
     case RX600MCExpr::VK_RX600_LO:
       if (MIFrm == RX600II::InstFormatI)
-        FixupKind = RX600::fixup_RX600_lo12_i;
+        FixupKind = RX600::fixup_rx600_lo12_i;
       else if (MIFrm == RX600II::InstFormatS)
-        FixupKind = RX600::fixup_RX600_lo12_s;
+        FixupKind = RX600::fixup_rx600_lo12_s;
       else
         llvm_unreachable("VK_RX600_LO used with unexpected instruction format");
       break;
     case RX600MCExpr::VK_RX600_HI:
-      FixupKind = RX600::fixup_RX600_hi20;
+      FixupKind = RX600::fixup_rx600_hi20;
       break;
     case RX600MCExpr::VK_RX600_PCREL_LO:
       if (MIFrm == RX600II::InstFormatI)
-        FixupKind = RX600::fixup_RX600_pcrel_lo12_i;
+        FixupKind = RX600::fixup_rx600_pcrel_lo12_i;
       else if (MIFrm == RX600II::InstFormatS)
-        FixupKind = RX600::fixup_RX600_pcrel_lo12_s;
+        FixupKind = RX600::fixup_rx600_pcrel_lo12_s;
       else
         llvm_unreachable(
             "VK_RX600_PCREL_LO used with unexpected instruction format");
       break;
     case RX600MCExpr::VK_RX600_PCREL_HI:
-      FixupKind = RX600::fixup_RX600_pcrel_hi20;
+      FixupKind = RX600::fixup_rx600_pcrel_hi20;
       break;
     case RX600MCExpr::VK_RX600_CALL:
-      FixupKind = RX600::fixup_RX600_call;
+      FixupKind = RX600::fixup_rx600_call;
       break;
     }
   } else if (Kind == MCExpr::SymbolRef &&
              cast<MCSymbolRefExpr>(Expr)->getKind() == MCSymbolRefExpr::VK_None) {
     if (Desc.getOpcode() == RX600::JAL) {
-      FixupKind = RX600::fixup_RX600_jal;
+      FixupKind = RX600::fixup_rx600_jal;
     } else if (MIFrm == RX600II::InstFormatB) {
-      FixupKind = RX600::fixup_RX600_branch;
+      FixupKind = RX600::fixup_rx600_branch;
     } else if (MIFrm == RX600II::InstFormatCJ) {
-      FixupKind = RX600::fixup_RX600_rvc_jump;
+      FixupKind = RX600::fixup_rx600_rvc_jump;
     } else if (MIFrm == RX600II::InstFormatCB) {
-      FixupKind = RX600::fixup_RX600_rvc_branch;
+      FixupKind = RX600::fixup_rx600_rvc_branch;
     }
   }
 
-  assert(FixupKind != RX600::fixup_RX600_invalid && "Unhandled expression!");
+  assert(FixupKind != RX600::fixup_rx600_invalid && "Unhandled expression!");
 
   Fixups.push_back(
       MCFixup::create(0, Expr, MCFixupKind(FixupKind), MI.getLoc()));
   ++MCNumFixups;
 
   if (EnableRelax) {
-    if (FixupKind == RX600::fixup_RX600_call) {
+    if (FixupKind == RX600::fixup_rx600_call) {
       Fixups.push_back(
-      MCFixup::create(0, Expr, MCFixupKind(RX600::fixup_RX600_relax),
+      MCFixup::create(0, Expr, MCFixupKind(RX600::fixup_rx600_relax),
                       MI.getLoc()));
       ++MCNumFixups;
     }

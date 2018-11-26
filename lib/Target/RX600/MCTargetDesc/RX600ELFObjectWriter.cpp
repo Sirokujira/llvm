@@ -32,16 +32,15 @@ public:
     return true;
   }
 
-  // オブジェクトを生成するときやリンク時にアドレス解決するために
-  // ELFObjectWriterなどから参照される
-  virtual unsigned GetRelocType(const MCValue &Target, const MCFixup &Fixup,
-                                bool IsPCRel, bool IsRelocWithSymbol,
-                                int64_t Addend) const;
+protected:
+  unsigned getRelocType(MCContext &Ctx, const MCValue &Target,
+                        const MCFixup &Fixup, bool IsPCRel) const override;
 };
 }
 
 RX600ELFObjectWriter::RX600ELFObjectWriter(uint8_t OSABI, bool Is64Bit)
-    : MCELFObjectTargetWriter(Is64Bit, OSABI, ELF::EM_RX600,
+//    : MCELFObjectTargetWriter(Is64Bit, OSABI, ELF::EM_RX600,
+    : MCELFObjectTargetWriter(Is64Bit, OSABI, ELF::EM_RX,   // already define ELF::EM_RX
                               /*HasRelocationAddend*/ true) {}
 
 RX600ELFObjectWriter::~RX600ELFObjectWriter() {}
@@ -74,29 +73,29 @@ unsigned RX600ELFObjectWriter::getRelocType(MCContext &Ctx,
     return ELF::R_RX600_SUB32;
   case FK_Data_Sub_8:
     return ELF::R_RX600_SUB64;
-  case RX600::fixup_RX600_hi20:
+  case RX600::fixup_rx600_hi20:
     return ELF::R_RX600_HI20;
-  case RX600::fixup_RX600_lo12_i:
+  case RX600::fixup_rx600_lo12_i:
     return ELF::R_RX600_LO12_I;
-  case RX600::fixup_RX600_lo12_s:
+  case RX600::fixup_rx600_lo12_s:
     return ELF::R_RX600_LO12_S;
-  case RX600::fixup_RX600_pcrel_hi20:
+  case RX600::fixup_rx600_pcrel_hi20:
     return ELF::R_RX600_PCREL_HI20;
-  case RX600::fixup_RX600_pcrel_lo12_i:
+  case RX600::fixup_rx600_pcrel_lo12_i:
     return ELF::R_RX600_PCREL_LO12_I;
-  case RX600::fixup_RX600_pcrel_lo12_s:
+  case RX600::fixup_rx600_pcrel_lo12_s:
     return ELF::R_RX600_PCREL_LO12_S;
-  case RX600::fixup_RX600_jal:
+  case RX600::fixup_rx600_jal:
     return ELF::R_RX600_JAL;
-  case RX600::fixup_RX600_branch:
+  case RX600::fixup_rx600_branch:
     return ELF::R_RX600_BRANCH;
-  case RX600::fixup_RX600_rvc_jump:
+  case RX600::fixup_rx600_rvc_jump:
     return ELF::R_RX600_RVC_JUMP;
-  case RX600::fixup_RX600_rvc_branch:
+  case RX600::fixup_rx600_rvc_branch:
     return ELF::R_RX600_RVC_BRANCH;
-  case RX600::fixup_RX600_call:
+  case RX600::fixup_rx600_call:
     return ELF::R_RX600_CALL;
-  case RX600::fixup_RX600_relax:
+  case RX600::fixup_rx600_relax:
     return ELF::R_RX600_RELAX;
   }
 }

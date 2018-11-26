@@ -251,6 +251,18 @@ SubtargetFeatures ELFObjectFileBase::getRISCVFeatures() const {
   return Features;
 }
 
+SubtargetFeatures ELFObjectFileBase::getRX600Features() const { // add
+  SubtargetFeatures Features;
+  unsigned PlatformFlags = getPlatformFlags();
+
+  if (PlatformFlags & ELF::EF_RX600_RVC) {
+    Features.AddFeature("c");
+  }
+
+  return Features;
+}
+
+
 SubtargetFeatures ELFObjectFileBase::getFeatures() const {
   switch (getEMachine()) {
   case ELF::EM_MIPS:
@@ -259,6 +271,8 @@ SubtargetFeatures ELFObjectFileBase::getFeatures() const {
     return getARMFeatures();
   case ELF::EM_RISCV:
     return getRISCVFeatures();
+  case ELF::EM_RX:              // add
+    return getRX600Features();
   default:
     return SubtargetFeatures();
   }

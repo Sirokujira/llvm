@@ -18,7 +18,7 @@
 
 using namespace llvm;
 
-#define DEBUG_TYPE "riscv-subtarget"
+#define DEBUG_TYPE "rx600-subtarget"
 
 #define GET_SUBTARGETINFO_TARGET_DESC
 #define GET_SUBTARGETINFO_CTOR

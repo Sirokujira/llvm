@@ -631,6 +631,22 @@ enum {
 #include "ELFRelocs/RISCV.def"
 };
 
+// RX600 Specific e_flags
+enum : unsigned {
+  EF_RX600_RVC = 0x0001,
+  EF_RX600_FLOAT_ABI = 0x0006,
+  EF_RX600_FLOAT_ABI_SOFT = 0x0000,
+  EF_RX600_FLOAT_ABI_SINGLE = 0x0002,
+  EF_RX600_FLOAT_ABI_DOUBLE = 0x0004,
+  EF_RX600_FLOAT_ABI_QUAD = 0x0006,
+  EF_RX600_RVE = 0x0008
+};
+
+// ELF Relocation types for RISC-V
+enum {
+#include "ELFRelocs/RX600.def"
+};
+
 // ELF Relocation types for S390/zSeries
 enum {
 #include "ELFRelocs/SystemZ.def"

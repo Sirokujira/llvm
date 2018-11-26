@@ -83,6 +83,8 @@ public:
 
   SubtargetFeatures getRISCVFeatures() const;
 
+  SubtargetFeatures getRX600Features() const;   // <- ’Ç‰Á•”•ª
+
   void setARMSubArch(Triple &TheTriple) const override;
 
   virtual uint16_t getEType() const = 0;

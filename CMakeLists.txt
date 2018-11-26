@@ -289,7 +289,7 @@ set(LLVM_ALL_TARGETS
   SystemZ
   X86
   XCore
-  RX600 // <-- ’Ç‰Á•”•ª
+  RX600 # <-- ’Ç‰Á•”•ª
   )
 
 # List of targets with JIT support:
