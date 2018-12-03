@@ -67,8 +67,8 @@ void WebAssemblyMCCodeEmitter::encodeInstruction(
     OS << uint8_t(Binary);
   } else {
     assert(Binary <= UINT16_MAX && "Several-byte opcodes not supported yet");
-    OS << uint8_t(Binary >> 8)
-       << uint8_t(Binary);
+    OS << uint8_t(Binary >> 8);
+    encodeULEB128(uint8_t(Binary), OS);
   }
 
   // For br_table instructions, encode the size of the table. In the MCInst,
@@ -162,9 +162,8 @@ void WebAssemblyMCCodeEmitter::encodeInstruction(
       } else {
         llvm_unreachable("unexpected symbolic operand kind");
       }
-      Fixups.push_back(MCFixup::create(
-          OS.tell() - Start, MO.getExpr(),
-          FixupKind, MI.getLoc()));
+      Fixups.push_back(MCFixup::create(OS.tell() - Start, MO.getExpr(),
+                                       FixupKind, MI.getLoc()));
       ++MCNumFixups;
       encodeULEB128(0, OS, PaddedSize);
     } else {

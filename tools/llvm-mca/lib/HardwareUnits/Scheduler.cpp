@@ -15,9 +15,8 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
+namespace llvm {
 namespace mca {
-
-using namespace llvm;
 
 #define DEBUG_TYPE "llvm-mca"
 
@@ -66,7 +65,7 @@ Scheduler::Status Scheduler::isAvailable(const InstRef &IR) const {
 
 void Scheduler::issueInstructionImpl(
     InstRef &IR,
-    SmallVectorImpl<std::pair<ResourceRef, double>> &UsedResources) {
+    SmallVectorImpl<std::pair<ResourceRef, ResourceCycles>> &UsedResources) {
   Instruction *IS = IR.getInstruction();
   const InstrDesc &D = IS->getDesc();
 
@@ -86,7 +85,8 @@ void Scheduler::issueInstructionImpl(
 
 // Release the buffered resources and issue the instruction.
 void Scheduler::issueInstruction(
-    InstRef &IR, SmallVectorImpl<std::pair<ResourceRef, double>> &UsedResources,
+    InstRef &IR,
+    SmallVectorImpl<std::pair<ResourceRef, ResourceCycles>> &UsedResources,
     SmallVectorImpl<InstRef> &ReadyInstructions) {
   const Instruction &Inst = *IR.getInstruction();
   bool HasDependentUsers = Inst.hasDependentUsers();
@@ -107,7 +107,7 @@ void Scheduler::promoteToReadySet(SmallVectorImpl<InstRef> &Ready) {
   unsigned RemovedElements = 0;
   for (auto I = WaitSet.begin(), E = WaitSet.end(); I != E;) {
     InstRef &IR = *I;
-    if (!IR.isValid())
+    if (!IR)
       break;
 
     // Check if this instruction is now ready. In case, force
@@ -159,7 +159,7 @@ void Scheduler::updateIssuedSet(SmallVectorImpl<InstRef> &Executed) {
   unsigned RemovedElements = 0;
   for (auto I = IssuedSet.begin(), E = IssuedSet.end(); I != E;) {
     InstRef &IR = *I;
-    if (!IR.isValid())
+    if (!IR)
       break;
     Instruction &IS = *IR.getInstruction();
     if (!IS.isExecuted()) {
@@ -242,3 +242,4 @@ bool Scheduler::isReady(const InstRef &IR) const {
 }
 
 } // namespace mca
+} // namespace llvm

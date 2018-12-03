@@ -153,7 +153,7 @@ getAllocationDataForFunction(const Function *Callee, AllocType AllocTy,
     return None;
 
   const AllocFnsTy *FnData = &Iter->second;
-  if ((FnData->AllocTy & AllocTy) == 0)
+  if ((FnData->AllocTy & AllocTy) != FnData->AllocTy)
     return None;
 
   // Check function prototype.

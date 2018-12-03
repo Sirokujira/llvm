@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "MicrosoftDemangleNodes.h"
+#include "llvm/Demangle/MicrosoftDemangleNodes.h"
 #include "llvm/Demangle/Compiler.h"
 #include "llvm/Demangle/Utility.h"
 #include <cctype>
@@ -161,22 +161,21 @@ void EncodedStringLiteralNode::output(OutputStream &OS,
                                       OutputFlags Flags) const {
   switch (Char) {
   case CharKind::Wchar:
-    OS << "const wchar_t * {L\"";
+    OS << "L\"";
     break;
   case CharKind::Char:
-    OS << "const char * {\"";
+    OS << "\"";
     break;
   case CharKind::Char16:
-    OS << "const char16_t * {u\"";
+    OS << "u\"";
     break;
   case CharKind::Char32:
-    OS << "const char32_t * {U\"";
+    OS << "U\"";
     break;
   }
   OS << DecodedString << "\"";
   if (IsTruncated)
     OS << "...";
-  OS << "}";
 }
 
 void IntegerLiteralNode::output(OutputStream &OS, OutputFlags Flags) const {
@@ -558,6 +557,7 @@ void VariableSymbolNode::output(OutputStream &OS, OutputFlags Flags) const {
   case StorageClass::PublicStatic:
   case StorageClass::ProtectedStatic:
     OS << "static ";
+    break;
   default:
     break;
   }

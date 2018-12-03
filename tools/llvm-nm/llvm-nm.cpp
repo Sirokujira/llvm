@@ -183,6 +183,8 @@ cl::opt<bool> DyldInfoOnly("dyldinfo-only",
 cl::opt<bool> NoLLVMBitcode("no-llvm-bc",
                             cl::desc("Disable LLVM bitcode reader"));
 
+cl::extrahelp HelpResponse("\nPass @FILE as argument to read options from FILE.\n");
+
 bool PrintAddress = true;
 
 bool MultipleFiles = false;
@@ -709,7 +711,7 @@ static void sortAndPrintSymbolList(SymbolicFile &Obj, bool printName,
 
     if (ReverseSort)
       Cmp = [=](const NMSymbol &A, const NMSymbol &B) { return Cmp(B, A); };
-    llvm::sort(SymbolList.begin(), SymbolList.end(), Cmp);
+    llvm::sort(SymbolList, Cmp);
   }
 
   if (!PrintFileName) {
@@ -757,6 +759,24 @@ static void sortAndPrintSymbolList(SymbolicFile &Obj, bool printName,
     }
   }
 
+  auto writeFileName = [&](raw_ostream &S) {
+    if (!ArchitectureName.empty())
+      S << "(for architecture " << ArchitectureName << "):";
+    if (OutputFormat == posix && !ArchiveName.empty())
+      S << ArchiveName << "[" << CurrentFilename << "]: ";
+    else {
+      if (!ArchiveName.empty())
+        S << ArchiveName << ":";
+      S << CurrentFilename << ": ";
+    }
+  };
+
+  if (SymbolList.empty()) {
+    if (PrintFileName)
+      writeFileName(errs());
+    errs() << "no symbols\n";
+  }
+
   for (SymbolListT::iterator I = SymbolList.begin(), E = SymbolList.end();
        I != E; ++I) {
     uint32_t SymFlags;
@@ -778,17 +798,8 @@ static void sortAndPrintSymbolList(SymbolicFile &Obj, bool printName,
         (!Global && ExternalOnly) || (SizeSort && !PrintAddress) ||
         (Weak && NoWeakSymbols))
       continue;
-    if (PrintFileName) {
-      if (!ArchitectureName.empty())
-        outs() << "(for architecture " << ArchitectureName << "):";
-      if (OutputFormat == posix && !ArchiveName.empty())
-        outs() << ArchiveName << "[" << CurrentFilename << "]: ";
-      else {
-        if (!ArchiveName.empty())
-          outs() << ArchiveName << ":";
-        outs() << CurrentFilename << ": ";
-      }
-    }
+    if (PrintFileName)
+      writeFileName(outs());
     if ((JustSymbolName ||
          (UndefinedOnly && MachO && OutputFormat != darwin)) &&
         OutputFormat != posix) {
@@ -1170,8 +1181,7 @@ dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
       // see if this symbol is a symbol from that section and if not skip it.
       if (Nsect && Nsect != getNsectInMachO(*MachO, Sym))
         continue;
-      NMSymbol S;
-      memset(&S, '\0', sizeof(S));
+      NMSymbol S = {};
       S.Size = 0;
       S.Address = 0;
       if (PrintSize) {
@@ -1265,8 +1275,7 @@ dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
           }
         }
         if (!found) {
-          NMSymbol S;
-          memset(&S, '\0', sizeof(NMSymbol));
+          NMSymbol S = {};
           S.Address = Entry.address() + BaseSegmentAddress;
           S.Size = 0;
           S.TypeChar = '\0';
@@ -1356,8 +1365,7 @@ dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
 
             // Now create the undefined symbol using the referened dynamic
             // library.
-            NMSymbol U;
-            memset(&U, '\0', sizeof(NMSymbol));
+            NMSymbol U = {};
             U.Address = 0;
             U.Size = 0;
             U.TypeChar = 'U';
@@ -1423,8 +1431,7 @@ dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
         }
         if (!found) {
           LastSymbolName = Entry.symbolName();
-          NMSymbol B;
-          memset(&B, '\0', sizeof(NMSymbol));
+          NMSymbol B = {};
           B.Address = 0;
           B.Size = 0;
           B.TypeChar = 'U';
@@ -1483,8 +1490,7 @@ dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
         }
         if (!found) {
           LastSymbolName = Entry.symbolName();
-          NMSymbol L;
-          memset(&L, '\0', sizeof(NMSymbol));
+          NMSymbol L = {};
           L.Name = Entry.symbolName();
           L.Address = 0;
           L.Size = 0;
@@ -1622,9 +1628,8 @@ dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
         }
         // See this address is not already in the symbol table fake up an
         // nlist for it.
-	if (!found) {
-          NMSymbol F;
-          memset(&F, '\0', sizeof(NMSymbol));
+        if (!found) {
+          NMSymbol F = {};
           F.Name = "<redacted function X>";
           F.Address = FoundFns[f] + BaseSegmentAddress;
           F.Size = 0;
@@ -1744,12 +1749,14 @@ static void dumpSymbolNamesFromFile(std::string &Filename) {
         outs() << "Archive map\n";
         for (; I != E; ++I) {
           Expected<Archive::Child> C = I->getMember();
-          if (!C)
+          if (!C) {
             error(C.takeError(), Filename);
+            break;
+          }
           Expected<StringRef> FileNameOrErr = C->getName();
           if (!FileNameOrErr) {
             error(FileNameOrErr.takeError(), Filename);
-            return;
+            break;
           }
           StringRef SymName = I->getName();
           outs() << SymName << " in " << FileNameOrErr.get() << "\n";
@@ -1889,7 +1896,6 @@ static void dumpSymbolNamesFromFile(std::string &Filename) {
         if (HostArchName == I->getArchFlagName()) {
           Expected<std::unique_ptr<ObjectFile>> ObjOrErr = I->getAsObjectFile();
           std::string ArchiveName;
-          ArchiveName.clear();
           if (ObjOrErr) {
             ObjectFile &Obj = *ObjOrErr.get();
             dumpSymbolNamesFromObject(Obj, false);

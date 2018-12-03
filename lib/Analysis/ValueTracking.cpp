@@ -26,6 +26,7 @@
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/AssumptionCache.h"
+#include "llvm/Analysis/GuardUtils.h"
 #include "llvm/Analysis/InstructionSimplify.h"
 #include "llvm/Analysis/Loads.h"
 #include "llvm/Analysis/LoopInfo.h"
@@ -1902,8 +1903,7 @@ static bool isKnownNonNullFromDominatingCondition(const Value *V,
           BasicBlockEdge Edge(BI->getParent(), NonNullSuccessor);
           if (Edge.isSingleEdge() && DT->dominates(Edge, CtxI->getParent()))
             return true;
-        } else if (Pred == ICmpInst::ICMP_NE &&
-                   match(Curr, m_Intrinsic<Intrinsic::experimental_guard>()) &&
+        } else if (Pred == ICmpInst::ICMP_NE && isGuard(Curr) &&
                    DT->dominates(cast<Instruction>(Curr), CtxI)) {
           return true;
         }
@@ -2510,6 +2510,44 @@ static unsigned ComputeNumSignBitsImpl(const Value *V, unsigned Depth,
     // valid for all elements of the vector (for example if vector is sign
     // extended, shifted, etc).
     return ComputeNumSignBits(U->getOperand(0), Depth + 1, Q);
+
+  case Instruction::ShuffleVector: {
+    // TODO: This is copied almost directly from the SelectionDAG version of
+    //       ComputeNumSignBits. It would be better if we could share common
+    //       code. If not, make sure that changes are translated to the DAG.
+
+    // Collect the minimum number of sign bits that are shared by every vector
+    // element referenced by the shuffle.
+    auto *Shuf = cast<ShuffleVectorInst>(U);
+    int NumElts = Shuf->getOperand(0)->getType()->getVectorNumElements();
+    int NumMaskElts = Shuf->getMask()->getType()->getVectorNumElements();
+    APInt DemandedLHS(NumElts, 0), DemandedRHS(NumElts, 0);
+    for (int i = 0; i != NumMaskElts; ++i) {
+      int M = Shuf->getMaskValue(i);
+      assert(M < NumElts * 2 && "Invalid shuffle mask constant");
+      // For undef elements, we don't know anything about the common state of
+      // the shuffle result.
+      if (M == -1)
+        return 1;
+      if (M < NumElts)
+        DemandedLHS.setBit(M % NumElts);
+      else
+        DemandedRHS.setBit(M % NumElts);
+    }
+    Tmp = std::numeric_limits<unsigned>::max();
+    if (!!DemandedLHS)
+      Tmp = ComputeNumSignBits(Shuf->getOperand(0), Depth + 1, Q);
+    if (!!DemandedRHS) {
+      Tmp2 = ComputeNumSignBits(Shuf->getOperand(1), Depth + 1, Q);
+      Tmp = std::min(Tmp, Tmp2);
+    }
+    // If we don't know anything, early out and try computeKnownBits fall-back.
+    if (Tmp == 1)
+      break;
+    assert(Tmp <= V->getType()->getScalarSizeInBits() &&
+           "Failed to determine minimum sign bits");
+    return Tmp;
+  }
   }
 
   // Finally, if we can prove that the top bits of the result are 0's or 1's,
@@ -2898,7 +2936,13 @@ static bool cannotBeOrderedLessThanZeroImpl(const Value *V,
               cannotBeOrderedLessThanZeroImpl(I->getOperand(1), TLI,
                                               SignBitOnly, Depth + 1));
 
+    case Intrinsic::maximum:
+      return cannotBeOrderedLessThanZeroImpl(I->getOperand(0), TLI, SignBitOnly,
+                                             Depth + 1) ||
+             cannotBeOrderedLessThanZeroImpl(I->getOperand(1), TLI, SignBitOnly,
+                                             Depth + 1);
     case Intrinsic::minnum:
+    case Intrinsic::minimum:
       return cannotBeOrderedLessThanZeroImpl(I->getOperand(0), TLI, SignBitOnly,
                                              Depth + 1) &&
              cannotBeOrderedLessThanZeroImpl(I->getOperand(1), TLI, SignBitOnly,
@@ -3042,62 +3086,92 @@ bool llvm::isKnownNeverNaN(const Value *V, const TargetLibraryInfo *TLI,
   return true;
 }
 
-/// If the specified value can be set by repeating the same byte in memory,
-/// return the i8 value that it is represented with.  This is
-/// true for all i8 values obviously, but is also true for i32 0, i32 -1,
-/// i16 0xF0F0, double 0.0 etc.  If the value can't be handled with a repeated
-/// byte store (e.g. i16 0x1234), return null.
 Value *llvm::isBytewiseValue(Value *V) {
+
   // All byte-wide stores are splatable, even of arbitrary variables.
-  if (V->getType()->isIntegerTy(8)) return V;
+  if (V->getType()->isIntegerTy(8))
+    return V;
+
+  LLVMContext &Ctx = V->getContext();
+
+  // Undef don't care.
+  auto *UndefInt8 = UndefValue::get(Type::getInt8Ty(Ctx));
+  if (isa<UndefValue>(V))
+    return UndefInt8;
+
+  Constant *C = dyn_cast<Constant>(V);
+  if (!C) {
+    // Conceptually, we could handle things like:
+    //   %a = zext i8 %X to i16
+    //   %b = shl i16 %a, 8
+    //   %c = or i16 %a, %b
+    // but until there is an example that actually needs this, it doesn't seem
+    // worth worrying about.
+    return nullptr;
+  }
 
   // Handle 'null' ConstantArrayZero etc.
-  if (Constant *C = dyn_cast<Constant>(V))
-    if (C->isNullValue())
-      return Constant::getNullValue(Type::getInt8Ty(V->getContext()));
+  if (C->isNullValue())
+    return Constant::getNullValue(Type::getInt8Ty(Ctx));
 
-  // Constant float and double values can be handled as integer values if the
+  // Constant floating-point values can be handled as integer values if the
   // corresponding integer value is "byteable".  An important case is 0.0.
-  if (ConstantFP *CFP = dyn_cast<ConstantFP>(V)) {
-    if (CFP->getType()->isFloatTy())
-      V = ConstantExpr::getBitCast(CFP, Type::getInt32Ty(V->getContext()));
-    if (CFP->getType()->isDoubleTy())
-      V = ConstantExpr::getBitCast(CFP, Type::getInt64Ty(V->getContext()));
+  if (ConstantFP *CFP = dyn_cast<ConstantFP>(C)) {
+    Type *Ty = nullptr;
+    if (CFP->getType()->isHalfTy())
+      Ty = Type::getInt16Ty(Ctx);
+    else if (CFP->getType()->isFloatTy())
+      Ty = Type::getInt32Ty(Ctx);
+    else if (CFP->getType()->isDoubleTy())
+      Ty = Type::getInt64Ty(Ctx);
     // Don't handle long double formats, which have strange constraints.
+    return Ty ? isBytewiseValue(ConstantExpr::getBitCast(CFP, Ty)) : nullptr;
   }
 
   // We can handle constant integers that are multiple of 8 bits.
-  if (ConstantInt *CI = dyn_cast<ConstantInt>(V)) {
+  if (ConstantInt *CI = dyn_cast<ConstantInt>(C)) {
     if (CI->getBitWidth() % 8 == 0) {
       assert(CI->getBitWidth() > 8 && "8 bits should be handled above!");
-
       if (!CI->getValue().isSplat(8))
         return nullptr;
-      return ConstantInt::get(V->getContext(), CI->getValue().trunc(8));
+      return ConstantInt::get(Ctx, CI->getValue().trunc(8));
     }
   }
 
-  // A ConstantDataArray/Vector is splatable if all its members are equal and
-  // also splatable.
-  if (ConstantDataSequential *CA = dyn_cast<ConstantDataSequential>(V)) {
-    Value *Elt = CA->getElementAsConstant(0);
-    Value *Val = isBytewiseValue(Elt);
-    if (!Val)
+  auto Merge = [&](Value *LHS, Value *RHS) -> Value * {
+    if (LHS == RHS)
+      return LHS;
+    if (!LHS || !RHS)
       return nullptr;
+    if (LHS == UndefInt8)
+      return RHS;
+    if (RHS == UndefInt8)
+      return LHS;
+    return nullptr;
+  };
 
-    for (unsigned I = 1, E = CA->getNumElements(); I != E; ++I)
-      if (CA->getElementAsConstant(I) != Elt)
+  if (ConstantDataSequential *CA = dyn_cast<ConstantDataSequential>(C)) {
+    Value *Val = UndefInt8;
+    for (unsigned I = 0, E = CA->getNumElements(); I != E; ++I)
+      if (!(Val = Merge(Val, isBytewiseValue(CA->getElementAsConstant(I)))))
         return nullptr;
-
     return Val;
   }
 
-  // Conceptually, we could handle things like:
-  //   %a = zext i8 %X to i16
-  //   %b = shl i16 %a, 8
-  //   %c = or i16 %a, %b
-  // but until there is an example that actually needs this, it doesn't seem
-  // worth worrying about.
+  if (isa<ConstantVector>(C)) {
+    Constant *Splat = cast<ConstantVector>(C)->getSplatValue();
+    return Splat ? isBytewiseValue(Splat) : nullptr;
+  }
+
+  if (isa<ConstantArray>(C) || isa<ConstantStruct>(C)) {
+    Value *Val = UndefInt8;
+    for (unsigned I = 0, E = C->getNumOperands(); I != E; ++I)
+      if (!(Val = Merge(Val, isBytewiseValue(C->getOperand(I)))))
+        return nullptr;
+    return Val;
+  }
+
+  // Don't try to handle the handful of other constants.
   return nullptr;
 }
 
@@ -4367,12 +4441,34 @@ static bool isKnownNonNaN(const Value *V, FastMathFlags FMF) {
 
   if (auto *C = dyn_cast<ConstantFP>(V))
     return !C->isNaN();
+
+  if (auto *C = dyn_cast<ConstantDataVector>(V)) {
+    if (!C->getElementType()->isFloatingPointTy())
+      return false;
+    for (unsigned I = 0, E = C->getNumElements(); I < E; ++I) {
+      if (C->getElementAsAPFloat(I).isNaN())
+        return false;
+    }
+    return true;
+  }
+
   return false;
 }
 
 static bool isKnownNonZero(const Value *V) {
   if (auto *C = dyn_cast<ConstantFP>(V))
     return !C->isZero();
+
+  if (auto *C = dyn_cast<ConstantDataVector>(V)) {
+    if (!C->getElementType()->isFloatingPointTy())
+      return false;
+    for (unsigned I = 0, E = C->getNumElements(); I < E; ++I) {
+      if (C->getElementAsAPFloat(I).isZero())
+        return false;
+    }
+    return true;
+  }
+
   return false;
 }
 
@@ -4664,6 +4760,27 @@ static SelectPatternResult matchSelectPattern(CmpInst::Predicate Pred,
                                               Value *TrueVal, Value *FalseVal,
                                               Value *&LHS, Value *&RHS,
                                               unsigned Depth) {
+  if (CmpInst::isFPPredicate(Pred)) {
+    // IEEE-754 ignores the sign of 0.0 in comparisons. So if the select has one
+    // 0.0 operand, set the compare's 0.0 operands to that same value for the
+    // purpose of identifying min/max. Disregard vector constants with undefined
+    // elements because those can not be back-propagated for analysis.
+    Value *OutputZeroVal = nullptr;
+    if (match(TrueVal, m_AnyZeroFP()) && !match(FalseVal, m_AnyZeroFP()) &&
+        !cast<Constant>(TrueVal)->containsUndefElement())
+      OutputZeroVal = TrueVal;
+    else if (match(FalseVal, m_AnyZeroFP()) && !match(TrueVal, m_AnyZeroFP()) &&
+             !cast<Constant>(FalseVal)->containsUndefElement())
+      OutputZeroVal = FalseVal;
+
+    if (OutputZeroVal) {
+      if (match(CmpLHS, m_AnyZeroFP()))
+        CmpLHS = OutputZeroVal;
+      if (match(CmpRHS, m_AnyZeroFP()))
+        CmpRHS = OutputZeroVal;
+    }
+  }
+
   LHS = CmpLHS;
   RHS = CmpRHS;
 

@@ -180,6 +180,8 @@ enum ArchExtKind : unsigned {
   AEK_SHA2 =        1 << 15,
   AEK_AES =         1 << 16,
   AEK_FP16FML =     1 << 17,
+  AEK_RAND =        1 << 18,
+  AEK_MTE =         1 << 19,
 };
 
 StringRef getCanonicalArchName(StringRef Arch);
@@ -315,9 +317,17 @@ enum GPUKind : uint32_t {
   GK_GFX902 = 61,
   GK_GFX904 = 62,
   GK_GFX906 = 63,
+  GK_GFX909 = 65,
 
   GK_AMDGCN_FIRST = GK_GFX600,
-  GK_AMDGCN_LAST = GK_GFX906,
+  GK_AMDGCN_LAST = GK_GFX909,
+};
+
+/// Instruction set architecture version.
+struct IsaVersion {
+  unsigned Major;
+  unsigned Minor;
+  unsigned Stepping;
 };
 
 // This isn't comprehensive for now, just things that are needed from the
@@ -335,18 +345,20 @@ enum ArchFeatureKind : uint32_t {
   FEATURE_FAST_DENORMAL_F32 = 1 << 5
 };
 
-GPUKind parseArchAMDGCN(StringRef CPU);
-GPUKind parseArchR600(StringRef CPU);
 StringRef getArchNameAMDGCN(GPUKind AK);
 StringRef getArchNameR600(GPUKind AK);
 StringRef getCanonicalArchName(StringRef Arch);
+GPUKind parseArchAMDGCN(StringRef CPU);
+GPUKind parseArchR600(StringRef CPU);
 unsigned getArchAttrAMDGCN(GPUKind AK);
 unsigned getArchAttrR600(GPUKind AK);
 
 void fillValidArchListAMDGCN(SmallVectorImpl<StringRef> &Values);
 void fillValidArchListR600(SmallVectorImpl<StringRef> &Values);
 
-}
+IsaVersion getIsaVersion(StringRef GPU);
+
+} // namespace AMDGPU
 
 } // namespace llvm
 

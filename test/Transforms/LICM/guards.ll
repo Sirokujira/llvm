@@ -1,5 +1,6 @@
-; RUN: opt -licm -basicaa < %s -S | FileCheck %s
-; RUN: opt -aa-pipeline=basic-aa -passes='require<aa>,require<targetir>,require<scalar-evolution>,require<opt-remark-emit>,loop(licm)' < %s -S | FileCheck %s
+; REQUIRES: asserts
+; RUN: opt -licm -basicaa -ipt-expensive-asserts=true < %s -S | FileCheck %s
+; RUN: opt -aa-pipeline=basic-aa -passes='require<aa>,require<targetir>,require<scalar-evolution>,require<opt-remark-emit>,loop(licm)' -ipt-expensive-asserts=true < %s -S | FileCheck %s
 
 ; Hoist guard and load.
 define void @test1(i1 %cond, i32* %ptr) {
@@ -84,15 +85,15 @@ loop:
 }
 
 
-; TODO: We can also hoist this load and guard from mustexec non-header block.
+; TODO: We can also hoist this guard from mustexec non-header block.
 define void @test4(i1 %c, i32* %p) {
 
 ; CHECK-LABEL: @test4(
 ; CHECK-LABEL: entry:
-; CHECK-LABEL: loop:
-; CHECK-LABEL: backedge:
 ; CHECK:       %a = load i32, i32* %p
 ; CHECK:       %invariant_cond = icmp ne i32 %a, 100
+; CHECK-LABEL: loop:
+; CHECK-LABEL: backedge:
 ; CHECK:       call void (i1, ...) @llvm.experimental.guard(i1 %invariant_cond)
 
 entry:
