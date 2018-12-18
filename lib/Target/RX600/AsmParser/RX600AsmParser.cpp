@@ -609,7 +609,9 @@ public:
 // Return the matching FPR64 register for the given FPR32.
 // FIXME: Ideally this function could be removed in favour of using
 // information from TableGen.
-unsigned convertFPR32ToFPR64(unsigned Reg) {
+// conflict risc-v function
+// unsigned convertFPR32ToFPR64(unsigned Reg) {
+unsigned convert_RX_FPR32ToFPR64(unsigned Reg) {
   switch (Reg) {
     default:
       llvm_unreachable("Not a recognised FPR32 register");
@@ -660,11 +662,14 @@ unsigned RX600AsmParser::validateTargetOperandClass(MCParsedAsmOperand &AsmOp,
   bool IsRegFPR32C =
       RX600MCRegisterClasses[RX600::FPR32CRegClassID].contains(Reg);
 
+  // Op.Reg.RegNum = Reg;
+  // return Match_Success;
+  // return Match_InvalidOperand;
   // As the parser couldn't differentiate an FPR32 from an FPR64, coerce the
   // register from FPR32 to FPR64 or FPR32C to FPR64C if necessary.
   if ((IsRegFPR32 && Kind == MCK_FPR64) ||
       (IsRegFPR32C && Kind == MCK_FPR64C)) {
-    Op.Reg.RegNum = convertFPR32ToFPR64(Reg);
+    Op.Reg.RegNum = convert_RX_FPR32ToFPR64(Reg);
     return Match_Success;
   }
   return Match_InvalidOperand;
